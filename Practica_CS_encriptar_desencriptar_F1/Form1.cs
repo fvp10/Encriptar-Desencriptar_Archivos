@@ -24,7 +24,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
         private void encriptar__Click(object sender, EventArgs e)
         {
-            //Hola
+            //Hola esto es una prueba
         }
     }
 }

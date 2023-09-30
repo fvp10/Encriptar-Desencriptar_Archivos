@@ -34,7 +34,7 @@
             // 
             // desencriptar_
             // 
-            this.desencriptar_.Location = new System.Drawing.Point(464, 110);
+            this.desencriptar_.Location = new System.Drawing.Point(601, 110);
             this.desencriptar_.Name = "desencriptar_";
             this.desencriptar_.Size = new System.Drawing.Size(75, 23);
             this.desencriptar_.TabIndex = 0;
@@ -44,7 +44,7 @@
             // 
             // encriptar_
             // 
-            this.encriptar_.Location = new System.Drawing.Point(356, 110);
+            this.encriptar_.Location = new System.Drawing.Point(497, 110);
             this.encriptar_.Name = "encriptar_";
             this.encriptar_.Size = new System.Drawing.Size(75, 23);
             this.encriptar_.TabIndex = 1;
@@ -56,7 +56,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(755, 392);
+            this.ClientSize = new System.Drawing.Size(891, 524);
             this.Controls.Add(this.encriptar_);
             this.Controls.Add(this.desencriptar_);
             this.Name = "Form1";
