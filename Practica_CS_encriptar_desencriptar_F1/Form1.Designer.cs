@@ -30,6 +30,9 @@
         {
             this.desencriptar_ = new System.Windows.Forms.Button();
             this.encriptar_ = new System.Windows.Forms.Button();
+            this.txt1 = new System.Windows.Forms.TextBox();
+            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            this.btn_selc = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // desencriptar_
@@ -44,7 +47,7 @@
             // 
             // encriptar_
             // 
-            this.encriptar_.Location = new System.Drawing.Point(497, 110);
+            this.encriptar_.Location = new System.Drawing.Point(509, 110);
             this.encriptar_.Name = "encriptar_";
             this.encriptar_.Size = new System.Drawing.Size(75, 23);
             this.encriptar_.TabIndex = 1;
@@ -52,16 +55,40 @@
             this.encriptar_.UseVisualStyleBackColor = true;
             this.encriptar_.Click += new System.EventHandler(this.encriptar__Click);
             // 
+            // txt1
+            // 
+            this.txt1.Location = new System.Drawing.Point(178, 110);
+            this.txt1.Name = "txt1";
+            this.txt1.Size = new System.Drawing.Size(226, 20);
+            this.txt1.TabIndex = 2;
+            // 
+            // openFileDialog1
+            // 
+            this.openFileDialog1.FileName = "openFileDialog1";
+            // 
+            // btn_selc
+            // 
+            this.btn_selc.Location = new System.Drawing.Point(73, 108);
+            this.btn_selc.Name = "btn_selc";
+            this.btn_selc.Size = new System.Drawing.Size(75, 23);
+            this.btn_selc.TabIndex = 3;
+            this.btn_selc.Text = "Seleccionar";
+            this.btn_selc.UseVisualStyleBackColor = true;
+            this.btn_selc.Click += new System.EventHandler(this.btn_selc_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(891, 524);
+            this.ClientSize = new System.Drawing.Size(797, 304);
+            this.Controls.Add(this.btn_selc);
+            this.Controls.Add(this.txt1);
             this.Controls.Add(this.encriptar_);
             this.Controls.Add(this.desencriptar_);
             this.Name = "Form1";
             this.Text = "Form1";
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -69,6 +96,9 @@
 
         private System.Windows.Forms.Button desencriptar_;
         private System.Windows.Forms.Button encriptar_;
+        private System.Windows.Forms.TextBox txt1;
+        private System.Windows.Forms.OpenFileDialog openFileDialog1;
+        private System.Windows.Forms.Button btn_selc;
     }
 }
 
