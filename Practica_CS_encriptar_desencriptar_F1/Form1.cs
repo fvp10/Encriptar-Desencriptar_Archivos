@@ -16,5 +16,15 @@ namespace Practica_CS_encriptar_desencriptar_F1
         {
             InitializeComponent();
         }
+
+        private void desencriptar__Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void encriptar__Click(object sender, EventArgs e)
+        {
+            //Hola esto es una prueba
+        }
     }
 }
