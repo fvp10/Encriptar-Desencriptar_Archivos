@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34031.279
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Practica_CS_encriptar_desencriptar_F1", "Practica_CS_encriptar_desencriptar_F1\Practica_CS_encriptar_desencriptar_F1.csproj", "{9067582E-261D-4B00-8BA9-F3BD25E51D53}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9067582E-261D-4B00-8BA9-F3BD25E51D53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9067582E-261D-4B00-8BA9-F3BD25E51D53}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9067582E-261D-4B00-8BA9-F3BD25E51D53}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9067582E-261D-4B00-8BA9-F3BD25E51D53}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1AF9C6B3-E8F0-44EE-9A20-1A16B130110E}
+	EndGlobalSection
+EndGlobal
