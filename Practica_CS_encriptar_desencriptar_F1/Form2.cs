@@ -10,21 +10,11 @@ using System.Windows.Forms;
 
 namespace Practica_CS_encriptar_desencriptar_F1
 {
-    public partial class Form1 : Form
+    public partial class Form2 : Form
     {
-        public Form1()
+        public Form2()
         {
             InitializeComponent();
-        }
-
-        private void desencriptar__Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void encriptar__Click(object sender, EventArgs e)
-        {
-            //Valentino es subnormal
         }
     }
 }
