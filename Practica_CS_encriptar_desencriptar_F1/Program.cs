@@ -11,6 +11,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
         /// <summary>
         /// Punto de entrada principal para la aplicación.
         /// </summary>
+        /// intento
         [STAThread]
         static void Main()
         {
