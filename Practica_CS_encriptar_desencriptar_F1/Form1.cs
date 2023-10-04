@@ -1,21 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using System.Security.Cryptography;
 
 namespace Practica_CS_encriptar_desencriptar_F1
 {
     public partial class Form1 : Form
     {
         public Form1()
-        {
+        {   
             InitializeComponent();
         }
 
@@ -24,9 +17,12 @@ namespace Practica_CS_encriptar_desencriptar_F1
             //Jose Yohn
         }
 
-        private void encriptar__Click(object sender, EventArgs e)
+        private void encriptar__Click(string archivoenc, byte[] clave, byte[] iv)
         {
-            //Felix Valentino
+            /*para generar la clave y el iv de manera aleatoria se hace en un método a parte usando 
+             *RNGCryptoServiceProvider que es una clase en el espacio de nombres  de la libreria System.Security.Cryptography(usada para el encriptado y desencriptado
+             *en el framework de .NET que se utiliza para generar números aleatorios criptográficamente seguros.
+             */
         }
 
         private void btn_selc_Click(object sender, EventArgs e)
