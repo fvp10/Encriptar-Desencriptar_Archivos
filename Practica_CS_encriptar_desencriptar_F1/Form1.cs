@@ -54,10 +54,14 @@ namespace Practica_CS_encriptar_desencriptar_F1
                 objetoAes.IV = iv;
                 objetoAes.Mode = CipherMode.CBC; // Modo CBC
 
-                //Escribe la clave en otro archivo a parte
+                string claveBase64 = Convert.ToBase64String(clave);
+
+                // Escribe la clave Base64 en otro archivo a parte
                 string archivoClave = Path.Combine(rutaGuardado, nombreArchivo + "_clave.txt");
-                File.WriteAllBytes(archivoClave, clave);
+                File.WriteAllText(archivoClave, claveBase64);
+
                 //Escribe elIV en otro archivo a parte
+                //-----------------PREGUNTAR SI EL IV HAY QUE PASARLO A BASE64---------------------------
                 string archivoIV = Path.Combine(rutaGuardado, nombreArchivo + "_IV.txt");
                 File.WriteAllBytes(archivoIV, iv);
 
