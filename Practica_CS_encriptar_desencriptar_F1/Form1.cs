@@ -11,10 +11,11 @@ namespace Practica_CS_encriptar_desencriptar_F1
     {
         private int posicionVertical = 10; // Inicializa la posición vertical
         private Dictionary<System.Windows.Forms.Button, Panel> botonesYFilas = new Dictionary<System.Windows.Forms.Button, Panel>();
-        private string rutaGuardado = "C:/CSarchivosENC";
+        private string rutaGuardado = Environment.CurrentDirectory;
         public Form1()
         {
             InitializeComponent();
+            ComprobarArchivosEncriptados();
         }
 
         private void desencriptar__Click(object sender, EventArgs e)
@@ -26,6 +27,8 @@ namespace Practica_CS_encriptar_desencriptar_F1
         {
             MetodoDeEncriptado();
         }
+
+       
 
         private void MetodoDeEncriptado()
         {
@@ -129,6 +132,42 @@ namespace Practica_CS_encriptar_desencriptar_F1
                 byte[] iv = new byte[16]; // 16 bytes para AES
                 rng.GetBytes(iv);
                 return iv;
+            }
+        }
+
+        private void ComprobarArchivosEncriptados()
+        {
+            if (!Directory.Exists(rutaGuardado))
+            {
+                return;
+            }
+
+            // Buscar archivos en la carpeta de guardado
+            string[] archivos = Directory.GetFiles(rutaGuardado, "*.enc");
+            foreach (string archivo in archivos)
+            {
+                string nombreArchivo = Path.GetFileNameWithoutExtension(archivo);
+                string claveFile = Path.Combine(rutaGuardado, nombreArchivo + "_clave.txt");
+                string ivFile = Path.Combine(rutaGuardado, nombreArchivo + "_IV.txt");
+
+                // Verificar si existen los archivos de clave y IV
+                if (File.Exists(claveFile) && File.Exists(ivFile))
+                {
+                    // Crear una nueva fila en la interfaz gráfica
+                    CrearNuevaFila();
+
+                    // Agregar el nombre del archivo encriptado y la fecha de creación en la fila
+                    foreach (Panel fila in panelContenedor.Controls)
+                    {
+                        Label txtCifrado = (Label)fila.Controls[0];
+                        if (txtCifrado.Text == "")
+                        {
+                            txtCifrado.Text = nombreArchivo;
+                            txtCifrado.Width = 150;
+                            txtCifrado.Height = 30;
+                        }
+                    }
+                }
             }
         }
 
