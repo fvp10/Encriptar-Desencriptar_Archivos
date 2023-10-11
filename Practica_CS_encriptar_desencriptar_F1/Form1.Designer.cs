@@ -28,22 +28,12 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.desencriptar_ = new System.Windows.Forms.Button();
             this.encriptar_ = new System.Windows.Forms.Button();
             this.txt1 = new System.Windows.Forms.TextBox();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.btn_selc = new System.Windows.Forms.Button();
+            this.panelContenedor = new System.Windows.Forms.Panel();
             this.SuspendLayout();
-            // 
-            // desencriptar_
-            // 
-            this.desencriptar_.Location = new System.Drawing.Point(601, 110);
-            this.desencriptar_.Name = "desencriptar_";
-            this.desencriptar_.Size = new System.Drawing.Size(75, 23);
-            this.desencriptar_.TabIndex = 0;
-            this.desencriptar_.Text = "Desencriptar";
-            this.desencriptar_.UseVisualStyleBackColor = true;
-            this.desencriptar_.Click += new System.EventHandler(this.desencriptar__Click);
             // 
             // encriptar_
             // 
@@ -57,6 +47,7 @@
             // 
             // txt1
             // 
+            this.txt1.Enabled = false;
             this.txt1.Location = new System.Drawing.Point(178, 110);
             this.txt1.Name = "txt1";
             this.txt1.Size = new System.Drawing.Size(226, 20);
@@ -76,15 +67,24 @@
             this.btn_selc.UseVisualStyleBackColor = true;
             this.btn_selc.Click += new System.EventHandler(this.btn_selc_Click);
             // 
+            // panelContenedor
+            // 
+            this.panelContenedor.Location = new System.Drawing.Point(73, 153);
+            this.panelContenedor.Margin = new System.Windows.Forms.Padding(2);
+            this.panelContenedor.Name = "panelContenedor";
+            this.panelContenedor.Size = new System.Drawing.Size(857, 469);
+            this.panelContenedor.TabIndex = 5;
+            this.panelContenedor.Paint += new System.Windows.Forms.PaintEventHandler(this.panelContenedor_Paint);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(797, 304);
+            this.ClientSize = new System.Drawing.Size(1069, 626);
+            this.Controls.Add(this.panelContenedor);
             this.Controls.Add(this.btn_selc);
             this.Controls.Add(this.txt1);
             this.Controls.Add(this.encriptar_);
-            this.Controls.Add(this.desencriptar_);
             this.Name = "Form1";
             this.Text = "Form1";
             this.ResumeLayout(false);
@@ -93,12 +93,11 @@
         }
 
         #endregion
-
-        private System.Windows.Forms.Button desencriptar_;
         private System.Windows.Forms.Button encriptar_;
         private System.Windows.Forms.TextBox txt1;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.Button btn_selc;
+        private System.Windows.Forms.Panel panelContenedor;
     }
 }
 
