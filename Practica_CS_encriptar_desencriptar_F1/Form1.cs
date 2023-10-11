@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 using System.Security.Cryptography;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
+using System.Drawing;
 
 namespace Practica_CS_encriptar_desencriptar_F1
 {
@@ -11,7 +13,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
     {
         private int posicionVertical = 10; // Inicializa la posición vertical
         private Dictionary<System.Windows.Forms.Button, Panel> botonesYFilas = new Dictionary<System.Windows.Forms.Button, Panel>();
-        private string rutaGuardado = Environment.CurrentDirectory;
+        private string rutaGuardado = Path.Combine(Environment.CurrentDirectory, "CSarchivosENC");
         public Form1()
         {
             InitializeComponent();
@@ -278,16 +280,17 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
         public void ComprobarCarpeta()
         {
-            if (Directory.Exists("../Practica_CS_encriptar_desencriptar_F1/CSarchivos"))
-            {
+            string carpetaPractica = Path.Combine(Environment.CurrentDirectory, "CSarchivosENC");
 
-            }
-            else
+            if (!Directory.Exists(carpetaPractica))
             {
-                
+                // La carpeta "CSarchivosENC" no existe, créala
+                Directory.CreateDirectory(carpetaPractica);
+
+                // Actualiza la variable rutaGuardado
+                rutaGuardado = carpetaPractica;
             }
         }
-
 
     }
 }
