@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 using System.Security.Cryptography;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
+using System.Drawing;
 
 namespace Practica_CS_encriptar_desencriptar_F1
 {
@@ -11,10 +13,12 @@ namespace Practica_CS_encriptar_desencriptar_F1
     {
         private int posicionVertical = 10; // Inicializa la posición vertical
         private Dictionary<System.Windows.Forms.Button, Panel> botonesYFilas = new Dictionary<System.Windows.Forms.Button, Panel>();
-        private string rutaGuardado = "C:/CSarchivosENC";
+        private string rutaGuardado = Path.Combine(Environment.CurrentDirectory, "CSarchivosENC");
         public Form1()
         {
             InitializeComponent();
+            ComprobarArchivosEncriptados();
+            ComprobarCarpeta();
         }
 
         private void desencriptar__Click(object sender, EventArgs e)
@@ -26,6 +30,8 @@ namespace Practica_CS_encriptar_desencriptar_F1
         {
             MetodoDeEncriptado();
         }
+
+       
 
         private void MetodoDeEncriptado()
         {
@@ -133,6 +139,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
         }
 
 
+
         private void btn_selc_Click(object sender, EventArgs e)
         {
             openFileDialog1.Title = "Busca tu archivo a encriptar";
@@ -234,5 +241,56 @@ namespace Practica_CS_encriptar_desencriptar_F1
         {
 
         }
+
+        private void ComprobarArchivosEncriptados()
+        {
+            if (!Directory.Exists(rutaGuardado))
+            {
+                return;
+            }
+
+            // Buscar archivos en la carpeta de guardado
+            string[] archivos = Directory.GetFiles(rutaGuardado, "*.enc");
+            foreach (string archivo in archivos)
+            {
+                string nombreArchivo = Path.GetFileNameWithoutExtension(archivo);
+                string claveFile = Path.Combine(rutaGuardado, nombreArchivo + "_clave.txt");
+                string ivFile = Path.Combine(rutaGuardado, nombreArchivo + "_IV.txt");
+
+                // Verificar si existen los archivos de clave y IV
+                if (File.Exists(claveFile) && File.Exists(ivFile))
+                {
+                    // Crear una nueva fila en la interfaz gráfica
+                    CrearNuevaFila();
+
+                    // Agregar el nombre del archivo encriptado y la fecha de creación en la fila
+                    foreach (Panel fila in panelContenedor.Controls)
+                    {
+                        Label txtCifrado = (Label)fila.Controls[0];
+                        if (txtCifrado.Text == "")
+                        {
+                            txtCifrado.Text = nombreArchivo;
+                            txtCifrado.Width = 150;
+                            txtCifrado.Height = 30;
+                        }
+                    }
+                }
+            }
+        }
+
+        public void ComprobarCarpeta()
+        {
+            string carpetaPractica = Path.Combine(Environment.CurrentDirectory, "CSarchivosENC");
+
+            if (!Directory.Exists(carpetaPractica))
+            {
+                // La carpeta "CSarchivosENC" no existe, créala
+                Directory.CreateDirectory(carpetaPractica);
+
+                // Actualiza la variable rutaGuardado
+                rutaGuardado = carpetaPractica;
+            }
+        }
+
     }
 }
