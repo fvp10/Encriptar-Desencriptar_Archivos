@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using System.Security.Cryptography;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 using System.Drawing;
+using System.Linq;
 
 namespace Practica_CS_encriptar_desencriptar_F1
 {
@@ -14,16 +15,22 @@ namespace Practica_CS_encriptar_desencriptar_F1
         private int posicionVertical = 10; // Inicializa la posición vertical
         private Dictionary<System.Windows.Forms.Button, Panel> botonesYFilas = new Dictionary<System.Windows.Forms.Button, Panel>();
         private string rutaGuardado = Path.Combine(Environment.CurrentDirectory, "CSarchivosENC");
+        private string rutaGuardadoDESENC = Path.Combine(Environment.CurrentDirectory, "CSarchivosDESENC");
+        private string nombreArc;
+        private Random rnd = new Random();
+
+
         public Form1()
         {
             InitializeComponent();
-            ComprobarArchivosEncriptados();
             ComprobarCarpeta();
+            ComprobarArchivosEncriptados();
         }
 
         private void desencriptar__Click(object sender, EventArgs e)
         {
             MessageBox.Show("Proceso de desencriptar");
+
         }
 
         private void encriptar__Click(object sender, EventArgs e)
@@ -31,10 +38,60 @@ namespace Practica_CS_encriptar_desencriptar_F1
             MetodoDeEncriptado();
         }
 
-       
+        private void Desencriptado(String nombre)
+        {
+
+            string RutaArchivoClave = Path.Combine(rutaGuardado, nombre + "_clave.txt");
+            string RutArchivoIV = Path.Combine(rutaGuardado, nombre + "_IV.txt");
+            string RutaArchivoENC = Path.Combine(rutaGuardado, nombre + ".enc");
+
+            byte[] key = Convert.FromBase64String(File.ReadAllText(RutaArchivoClave));
+            byte[] iv = File.ReadAllBytes(RutArchivoIV);
+
+
+            using (Aes objetoAes = Aes.Create())
+            {
+                objetoAes.Key = key;
+                objetoAes.IV = iv;
+                objetoAes.Mode = CipherMode.CBC; // Modo CBC
+
+                // Crear un flujo de descifrado
+                using (ICryptoTransform descifrado = objetoAes.CreateDecryptor())
+                {
+                    // Ruta donde se guardará el archivo desencriptado
+                    string archivoDesencriptado = Path.Combine(rutaGuardadoDESENC, nombre);
+
+                    // Crear un flujo de escritura para el archivo desencriptado
+                    using (FileStream archivoDesenc = new FileStream(archivoDesencriptado, FileMode.Create))
+                    {
+                        // Crear un flujo de lectura para el archivo encriptado
+                        using (FileStream fsIn = new FileStream(RutaArchivoENC, FileMode.Open))
+                        {
+                            // Leer el IV desde el archivo encriptado
+                            fsIn.Read(iv, 0, iv.Length);
+
+                            // Crear un flujo de cifrado para descifrar los datos
+                            using (CryptoStream cs = new CryptoStream(fsIn, descifrado, CryptoStreamMode.Read))
+                            {
+                                // Leer el archivo encriptado y escribir los datos descifrados en el archivo desencriptado
+                                int data;
+                                while ((data = cs.ReadByte()) != -1)
+                                {
+                                    archivoDesenc.WriteByte((byte)data);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            MessageBox.Show("Archivo desencriptado y guardado en: " + rutaGuardadoDESENC);
+            BorrarArchivoEncriptado(nombre);
+        }
 
         private void MetodoDeEncriptado()
         {
+
             // Verificar si se ha seleccionado un archivo
             if (string.IsNullOrEmpty(txt1.Text))
             {
@@ -51,7 +108,9 @@ namespace Practica_CS_encriptar_desencriptar_F1
             // Generar un IV aleatorio
             byte[] iv = GenerarIVAleatorio();
 
-            string nombreArchivo = Path.GetFileName(archivoOriginal);
+            setNomArch(Path.GetFileName(archivoOriginal));
+
+            comprobarRepetidos(getNomArch());
 
             // Crear una instancia de AES con la clave y el IV generados
             using (Aes objetoAes = Aes.Create())
@@ -63,12 +122,12 @@ namespace Practica_CS_encriptar_desencriptar_F1
                 string claveBase64 = Convert.ToBase64String(clave);
 
                 // Escribe la clave Base64 en otro archivo a parte
-                string archivoClave = Path.Combine(rutaGuardado, nombreArchivo + "_clave.txt");
+                string archivoClave = Path.Combine(rutaGuardado, nombreArc + "_clave.txt");
                 File.WriteAllText(archivoClave, claveBase64);
 
                 //Escribe elIV en otro archivo a parte
                 //-----------------PREGUNTAR SI EL IV HAY QUE PASARLO A BASE64---------------------------
-                string archivoIV = Path.Combine(rutaGuardado, nombreArchivo + "_IV.txt");
+                string archivoIV = Path.Combine(rutaGuardado, nombreArc + "_IV.txt");
                 File.WriteAllBytes(archivoIV, iv);
 
                 // Crear un flujo de cifrado
@@ -77,7 +136,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
                 using (ICryptoTransform cifrado = objetoAes.CreateEncryptor())
                 {
                     // Ruta donde se guardará el archivo encriptado
-                    string archivoEncriptado = Path.Combine(rutaGuardado, nombreArchivo + ".enc");
+                    string archivoEncriptado = Path.Combine(rutaGuardado, nombreArc + ".enc");
 
                     // Crear un flujo de escritura para el archivo encriptado
                     //archivoenc representa el archivo encriptado en el que estamos escribiendo datos
@@ -139,7 +198,6 @@ namespace Practica_CS_encriptar_desencriptar_F1
         }
 
 
-
         private void btn_selc_Click(object sender, EventArgs e)
         {
             openFileDialog1.Title = "Busca tu archivo a encriptar";
@@ -156,14 +214,10 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
         private void CrearNuevaFila()
         {
-            //AQUI HAY QUE LLAMAR A LA FUNCION DE ENCRIPTAR ANTES DE QUE CREE LA FILA 
-            //PARA QUE CUANDO SE CREE LA FILA SALGA YA ENCRIPTADO
-
-
-
             // CREACION DE LAS FILAS
             Label txtCifrado = new Label();
-            txtCifrado.Text = txt1.Text; //ESTO ES TEMPORAL YA QUE HABRÁ QUE PONER EL ARCHIVO CIFRADO
+
+            txtCifrado.Text = getNomArch(); //ESTO ES TEMPORAL YA QUE HABRÁ QUE PONER EL ARCHIVO CIFRADO
             txtCifrado.Width = 150;
             txtCifrado.Height = 30;
 
@@ -199,7 +253,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
             posicionVertical += nuevaFila.Height + 5; // Puedes ajustar el espacio entre filas
 
             // Asigna un manejador de eventos a los botones de la fila
-            btnDesencriptar.Click += desencriptar__Click;
+            btnDesencriptar.Click +=  (sender, e ) => Desencriptado(txtCifrado.Text);
             btnBorrar.Click += (sender, e) => EliminarFila(nuevaFila, txtCifrado.Text);//he quitado + ".enc"
 
             // Agrega la nueva fila al panel de contenedor
@@ -242,6 +296,40 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
         }
 
+        private void comprobarRepetidos(String nom)
+        {     
+            string[] archivos = Directory.GetFiles(rutaGuardado, "*.enc");
+
+            if (archivos.Length != 0)
+            {
+                bool nombreExiste = archivos.Any(archivo => Path.GetFileNameWithoutExtension(archivo) == nom);
+
+                while (nombreExiste)
+                {
+                    int random = generadorRandom();
+                    nom = random.ToString() + nom;
+                    nombreExiste = archivos.Any(archivo => Path.GetFileNameWithoutExtension(archivo) == nom);
+                }
+
+                setNomArch(nom);
+            }
+        }
+
+        private int generadorRandom()
+        {
+            return rnd.Next(0, 100); // Genera un número aleatorio entre 0 y 99    
+        }
+
+        private void setNomArch(string nom)
+        {
+            this.nombreArc = nom;
+        }
+
+        private string getNomArch()
+        {
+            return this.nombreArc;
+        }
+
         private void ComprobarArchivosEncriptados()
         {
             if (!Directory.Exists(rutaGuardado))
@@ -263,7 +351,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
                     // Crear una nueva fila en la interfaz gráfica
                     CrearNuevaFila();
 
-                    // Agregar el nombre del archivo encriptado y la fecha de creación en la fila
+                    // Agregar el nombre del archivo encriptado
                     foreach (Panel fila in panelContenedor.Controls)
                     {
                         Label txtCifrado = (Label)fila.Controls[0];
@@ -281,6 +369,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
         public void ComprobarCarpeta()
         {
             string carpetaPractica = Path.Combine(Environment.CurrentDirectory, "CSarchivosENC");
+            string carpetaPractica2 = Path.Combine(Environment.CurrentDirectory, "CSarchivosDESENC");
 
             if (!Directory.Exists(carpetaPractica))
             {
@@ -290,7 +379,15 @@ namespace Practica_CS_encriptar_desencriptar_F1
                 // Actualiza la variable rutaGuardado
                 rutaGuardado = carpetaPractica;
             }
-        }
 
+            if (!Directory.Exists(carpetaPractica2))
+            {
+                // La carpeta "CSarchivosENC" no existe, créala
+                Directory.CreateDirectory(carpetaPractica2);
+
+                // Actualiza la variable rutaGuardado
+                rutaGuardadoDESENC = carpetaPractica2;
+            }
+        }
     }
 }
