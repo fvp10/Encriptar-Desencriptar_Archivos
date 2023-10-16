@@ -13,6 +13,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
     {
         private int posicionVertical = 10; // Inicializa la posición vertical
+        private int posicionVerticalDESENC = 10;
         private Dictionary<System.Windows.Forms.Button, Panel> botonesYFilas = new Dictionary<System.Windows.Forms.Button, Panel>();
         //private string rutaGuardado = Path.Combine(Environment.CurrentDirectory, "CSarchivosENC");
         //private string rutaGuardadoDESENC = Path.Combine(Environment.CurrentDirectory, "CSarchivosDESENC");
@@ -111,10 +112,11 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
             // Generar un IV aleatorio
             byte[] iv = GenerarIVAleatorio();
+            nombreArc = Path.GetFileName(archivoOriginal);
 
-            setNomArch(Path.GetFileName(archivoOriginal));
+           
 
-            comprobarRepetidos(getNomArch());
+            comprobarRepetidos(nombreArc);
 
             // Crear una instancia de AES con la clave y el IV generados
             using (Aes objetoAes = Aes.Create())
@@ -177,6 +179,10 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
             // Crear una nueva fila en la interfaz gráfica
             CrearNuevaFila();
+
+            //Actualiz la paggina :
+
+            ActualizarLista();
         }
 
         // Método para generar una clave aleatoria de 32 bytes (256 bits)
@@ -220,8 +226,8 @@ namespace Practica_CS_encriptar_desencriptar_F1
         {
             // CREACION DE LAS FILAS
             Label txtCifrado = new Label();
-
-            txtCifrado.Text = getNomArch(); //ESTO ES TEMPORAL YA QUE HABRÁ QUE PONER EL ARCHIVO CIFRADO
+            
+            txtCifrado.Text = nombreArc; //ESTO ES TEMPORAL YA QUE HABRÁ QUE PONER EL ARCHIVO CIFRADO
             txtCifrado.Width = 150;
             txtCifrado.Height = 30;
 
@@ -302,6 +308,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
             panelContenedor.Controls.Clear();
             panelDESENC.Controls.Clear();
             posicionVertical = 10; // Restablecer la posición vertical
+            posicionVerticalDESENC = 10;
 
             // Repoblar la lista de archivos encriptados
             ComprobarArchivosEncriptados();
@@ -343,7 +350,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
                     nombreExiste = archivos.Any(archivo => Path.GetFileNameWithoutExtension(archivo) == nom);
                 }
 
-                setNomArch(nom);
+                nombreArc = nom;
             }
         }
 
@@ -352,15 +359,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
             return rnd.Next(0, 100); // Genera un número aleatorio entre 0 y 99    
         }
 
-        private void setNomArch(string nom)
-        {
-            this.nombreArc = nom;
-        }
 
-        private string getNomArch()
-        {
-            return this.nombreArc;
-        }
 
         private void crearNuevaFilaDESENC(String nom)
         {
@@ -387,10 +386,10 @@ namespace Practica_CS_encriptar_desencriptar_F1
             nuevaFila.Controls.Add(btnBorrar);
 
 
-            nuevaFila.Location = new System.Drawing.Point(10, posicionVertical);
+            nuevaFila.Location = new System.Drawing.Point(10, posicionVerticalDESENC);
 
             // Incrementa la posición vertical para la próxima fila
-            posicionVertical += nuevaFila.Height + 5; // Puedes ajustar el espacio entre filas
+            posicionVerticalDESENC += nuevaFila.Height + 5; // Puedes ajustar el espacio entre filas
 
             btnBorrar.Click += (sender, e) => EliminarFila(nuevaFila, txtDESENC.Text,2);//he quitado + ".enc"
 
@@ -411,9 +410,9 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
             foreach (string archivo in archivos)
             {
-                string nombreArchivo = Path.GetFileNameWithoutExtension(archivo);
-                string claveFile = Path.Combine(rutaGuardado, nombreArchivo + "_clave.txt");
-                string ivFile = Path.Combine(rutaGuardado, nombreArchivo + "_IV.txt");
+                nombreArc = Path.GetFileNameWithoutExtension(archivo);
+                string claveFile = Path.Combine(rutaGuardado, nombreArc + "_clave.txt");
+                string ivFile = Path.Combine(rutaGuardado, nombreArc + "_IV.txt");
 
                 // Verificar si existen los archivos de clave y IV
                 if (File.Exists(claveFile) && File.Exists(ivFile))
@@ -427,7 +426,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
                         Label txtCifrado = (Label)fila.Controls[0];
                         if (txtCifrado.Text == "")
                         {
-                            txtCifrado.Text = nombreArchivo;
+                            txtCifrado.Text = nombreArc;
                             txtCifrado.Width = 150;
                             txtCifrado.Height = 30;
                         }
