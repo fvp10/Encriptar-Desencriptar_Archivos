@@ -13,9 +13,12 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
     {
         private int posicionVertical = 10; // Inicializa la posición vertical
+        private int posicionVerticalDESENC = 10;
         private Dictionary<System.Windows.Forms.Button, Panel> botonesYFilas = new Dictionary<System.Windows.Forms.Button, Panel>();
-        private string rutaGuardado = Path.Combine(Environment.CurrentDirectory, "CSarchivosENC");
-        private string rutaGuardadoDESENC = Path.Combine(Environment.CurrentDirectory, "CSarchivosDESENC");
+        //private string rutaGuardado = Path.Combine(Environment.CurrentDirectory, "CSarchivosENC");
+        //private string rutaGuardadoDESENC = Path.Combine(Environment.CurrentDirectory, "CSarchivosDESENC");
+        private string rutaGuardado = "";
+        private string rutaGuardadoDESENC = "";
         private string nombreArc;
         private Random rnd = new Random();
 
@@ -87,6 +90,8 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
             MessageBox.Show("Archivo desencriptado y guardado en: " + rutaGuardadoDESENC);
             BorrarArchivoEncriptado(nombre);
+            //crearNuevaFilaDESENC(nombre);
+            ActualizarLista();
         }
 
         private void MetodoDeEncriptado()
@@ -107,10 +112,11 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
             // Generar un IV aleatorio
             byte[] iv = GenerarIVAleatorio();
+            nombreArc = Path.GetFileName(archivoOriginal);
 
-            setNomArch(Path.GetFileName(archivoOriginal));
+           
 
-            comprobarRepetidos(getNomArch());
+            comprobarRepetidos(nombreArc);
 
             // Crear una instancia de AES con la clave y el IV generados
             using (Aes objetoAes = Aes.Create())
@@ -173,6 +179,10 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
             // Crear una nueva fila en la interfaz gráfica
             CrearNuevaFila();
+
+            //Actualiz la paggina :
+
+            ActualizarLista();
         }
 
         // Método para generar una clave aleatoria de 32 bytes (256 bits)
@@ -216,8 +226,8 @@ namespace Practica_CS_encriptar_desencriptar_F1
         {
             // CREACION DE LAS FILAS
             Label txtCifrado = new Label();
-
-            txtCifrado.Text = getNomArch(); //ESTO ES TEMPORAL YA QUE HABRÁ QUE PONER EL ARCHIVO CIFRADO
+            
+            txtCifrado.Text = nombreArc; //ESTO ES TEMPORAL YA QUE HABRÁ QUE PONER EL ARCHIVO CIFRADO
             txtCifrado.Width = 150;
             txtCifrado.Height = 30;
 
@@ -254,18 +264,31 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
             // Asigna un manejador de eventos a los botones de la fila
             btnDesencriptar.Click +=  (sender, e ) => Desencriptado(txtCifrado.Text);
-            btnBorrar.Click += (sender, e) => EliminarFila(nuevaFila, txtCifrado.Text);//he quitado + ".enc"
+            btnBorrar.Click += (sender, e) => EliminarFila(nuevaFila, txtCifrado.Text,1);//he quitado + ".enc"
 
             // Agrega la nueva fila al panel de contenedor
             panelContenedor.Controls.Add(nuevaFila);
 
             txt1.Text = "";
         }
-        private void EliminarFila(Panel fila,string nombreArchivoEncriptado)
+
+        private void EliminarFila(Panel fila,string nombreArchivo,int modo)
         {
-            BorrarArchivoEncriptado(nombreArchivoEncriptado);
-            // Elimina la fila del panel de contenedor y del diccionario
-            panelContenedor.Controls.Remove(fila);
+            if(modo == 1)
+            {
+                BorrarArchivoEncriptado(nombreArchivo);
+                // Elimina la fila del panel de contenedor y del diccionario
+                panelContenedor.Controls.Remove(fila);
+                panelContenedor.Controls.Clear();
+            }
+            else
+            {
+                string rutaArchivoDESENC = Path.Combine(rutaGuardadoDESENC, nombreArchivo);
+                File.Delete(rutaArchivoDESENC);
+                panelDESENC.Controls.Remove(fila);
+                panelDESENC.Controls.Clear();
+            }
+           
             // Busca y elimina la entrada correspondiente en el diccionario
             foreach (var kvp in botonesYFilas)
             {
@@ -275,7 +298,22 @@ namespace Practica_CS_encriptar_desencriptar_F1
                     break;
                 }
             }
+
+            ActualizarLista();
         }
+
+        private void ActualizarLista()
+        {
+            // Limpiar la lista existente
+            panelContenedor.Controls.Clear();
+            panelDESENC.Controls.Clear();
+            posicionVertical = 10; // Restablecer la posición vertical
+            posicionVerticalDESENC = 10;
+
+            // Repoblar la lista de archivos encriptados
+            ComprobarArchivosEncriptados();
+        }
+
         private void BorrarArchivoEncriptado(string nombreArchivo)
         {
             
@@ -290,6 +328,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
                 File.Delete(rutaClave);
                 File.Delete(rutaIV);
             }
+            ActualizarLista();
         }
         private void panelContenedor_Paint(object sender, PaintEventArgs e)
         {
@@ -311,7 +350,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
                     nombreExiste = archivos.Any(archivo => Path.GetFileNameWithoutExtension(archivo) == nom);
                 }
 
-                setNomArch(nom);
+                nombreArc = nom;
             }
         }
 
@@ -320,30 +359,60 @@ namespace Practica_CS_encriptar_desencriptar_F1
             return rnd.Next(0, 100); // Genera un número aleatorio entre 0 y 99    
         }
 
-        private void setNomArch(string nom)
-        {
-            this.nombreArc = nom;
-        }
 
-        private string getNomArch()
+
+        private void crearNuevaFilaDESENC(String nom)
         {
-            return this.nombreArc;
+
+            Label txtDESENC = new Label();
+
+            txtDESENC.Text = nom; //ESTO ES TEMPORAL YA QUE HABRÁ QUE PONER EL ARCHIVO CIFRADO
+            txtDESENC.Width = 150;
+            txtDESENC.Height = 30;
+
+            System.Windows.Forms.Button btnBorrar = new System.Windows.Forms.Button();
+            btnBorrar.Text = "Borrar";
+            btnBorrar.Width = 80;
+            btnBorrar.Height = 30;
+
+            Panel nuevaFila = new Panel();
+            nuevaFila.Width = panelDESENC.Width;
+            nuevaFila.Height = 30;
+
+            txtDESENC.Location = new System.Drawing.Point(0, 0);
+            btnBorrar.Location = new System.Drawing.Point(txtDESENC.Right + 5, 0);
+
+            nuevaFila.Controls.Add(txtDESENC);
+            nuevaFila.Controls.Add(btnBorrar);
+
+
+            nuevaFila.Location = new System.Drawing.Point(10, posicionVerticalDESENC);
+
+            // Incrementa la posición vertical para la próxima fila
+            posicionVerticalDESENC += nuevaFila.Height + 5; // Puedes ajustar el espacio entre filas
+
+            btnBorrar.Click += (sender, e) => EliminarFila(nuevaFila, txtDESENC.Text,2);//he quitado + ".enc"
+
+            panelDESENC.Controls.Add(nuevaFila);
+
         }
 
         private void ComprobarArchivosEncriptados()
         {
-            if (!Directory.Exists(rutaGuardado))
+            if (!Directory.Exists(rutaGuardado) || !Directory.Exists(rutaGuardadoDESENC))
             {
                 return;
             }
 
             // Buscar archivos en la carpeta de guardado
             string[] archivos = Directory.GetFiles(rutaGuardado, "*.enc");
+            string[] archivosDESENC = Directory.GetFiles(rutaGuardadoDESENC);
+
             foreach (string archivo in archivos)
             {
-                string nombreArchivo = Path.GetFileNameWithoutExtension(archivo);
-                string claveFile = Path.Combine(rutaGuardado, nombreArchivo + "_clave.txt");
-                string ivFile = Path.Combine(rutaGuardado, nombreArchivo + "_IV.txt");
+                nombreArc = Path.GetFileNameWithoutExtension(archivo);
+                string claveFile = Path.Combine(rutaGuardado, nombreArc + "_clave.txt");
+                string ivFile = Path.Combine(rutaGuardado, nombreArc + "_IV.txt");
 
                 // Verificar si existen los archivos de clave y IV
                 if (File.Exists(claveFile) && File.Exists(ivFile))
@@ -357,10 +426,28 @@ namespace Practica_CS_encriptar_desencriptar_F1
                         Label txtCifrado = (Label)fila.Controls[0];
                         if (txtCifrado.Text == "")
                         {
-                            txtCifrado.Text = nombreArchivo;
+                            txtCifrado.Text = nombreArc;
                             txtCifrado.Width = 150;
                             txtCifrado.Height = 30;
                         }
+                    }
+                }
+            }
+
+            foreach (string arch in archivosDESENC)
+            {
+                string nombreArchivoDESENC = Path.GetFileName(arch);
+
+                crearNuevaFilaDESENC(nombreArchivoDESENC);
+
+                foreach (Panel fila in panelDESENC.Controls)
+                {
+                    Label txtDESENC = (Label)fila.Controls[0];
+                    if (txtDESENC.Text == "")
+                    {
+                        txtDESENC.Text = nombreArchivoDESENC;
+                        txtDESENC.Width = 150;
+                        txtDESENC.Height = 30;
                     }
                 }
             }
@@ -375,19 +462,15 @@ namespace Practica_CS_encriptar_desencriptar_F1
             {
                 // La carpeta "CSarchivosENC" no existe, créala
                 Directory.CreateDirectory(carpetaPractica);
-
-                // Actualiza la variable rutaGuardado
-                rutaGuardado = carpetaPractica;
             }
+            rutaGuardado = carpetaPractica;
 
             if (!Directory.Exists(carpetaPractica2))
             {
                 // La carpeta "CSarchivosENC" no existe, créala
                 Directory.CreateDirectory(carpetaPractica2);
-
-                // Actualiza la variable rutaGuardado
-                rutaGuardadoDESENC = carpetaPractica2;
             }
+            rutaGuardadoDESENC = carpetaPractica2;
         }
     }
 }

@@ -33,11 +33,14 @@
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.btn_selc = new System.Windows.Forms.Button();
             this.panelContenedor = new System.Windows.Forms.Panel();
+            this.panelDESENC = new System.Windows.Forms.Panel();
+            this.label1 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // encriptar_
             // 
-            this.encriptar_.Location = new System.Drawing.Point(509, 110);
+            this.encriptar_.Location = new System.Drawing.Point(679, 117);
             this.encriptar_.Name = "encriptar_";
             this.encriptar_.Size = new System.Drawing.Size(75, 23);
             this.encriptar_.TabIndex = 1;
@@ -48,7 +51,7 @@
             // txt1
             // 
             this.txt1.Enabled = false;
-            this.txt1.Location = new System.Drawing.Point(178, 110);
+            this.txt1.Location = new System.Drawing.Point(424, 120);
             this.txt1.Name = "txt1";
             this.txt1.Size = new System.Drawing.Size(226, 20);
             this.txt1.TabIndex = 2;
@@ -59,7 +62,7 @@
             // 
             // btn_selc
             // 
-            this.btn_selc.Location = new System.Drawing.Point(73, 108);
+            this.btn_selc.Location = new System.Drawing.Point(318, 118);
             this.btn_selc.Name = "btn_selc";
             this.btn_selc.Size = new System.Drawing.Size(75, 23);
             this.btn_selc.TabIndex = 3;
@@ -69,18 +72,46 @@
             // 
             // panelContenedor
             // 
-            this.panelContenedor.Location = new System.Drawing.Point(73, 153);
+            this.panelContenedor.Location = new System.Drawing.Point(60, 192);
             this.panelContenedor.Margin = new System.Windows.Forms.Padding(2);
             this.panelContenedor.Name = "panelContenedor";
-            this.panelContenedor.Size = new System.Drawing.Size(857, 469);
+            this.panelContenedor.Size = new System.Drawing.Size(511, 308);
             this.panelContenedor.TabIndex = 5;
             this.panelContenedor.Paint += new System.Windows.Forms.PaintEventHandler(this.panelContenedor_Paint);
+            // 
+            // panelDESENC
+            // 
+            this.panelDESENC.Location = new System.Drawing.Point(604, 192);
+            this.panelDESENC.Name = "panelDESENC";
+            this.panelDESENC.Size = new System.Drawing.Size(437, 308);
+            this.panelDESENC.TabIndex = 6;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(246, 177);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(106, 13);
+            this.label1.TabIndex = 7;
+            this.label1.Text = "Archivos encriptados";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(760, 177);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(125, 13);
+            this.label2.TabIndex = 8;
+            this.label2.Text = "Archivos Desencriptados";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1069, 626);
+            this.ClientSize = new System.Drawing.Size(1099, 531);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.label1);
+            this.Controls.Add(this.panelDESENC);
             this.Controls.Add(this.panelContenedor);
             this.Controls.Add(this.btn_selc);
             this.Controls.Add(this.txt1);
@@ -98,6 +129,9 @@
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.Button btn_selc;
         private System.Windows.Forms.Panel panelContenedor;
+        private System.Windows.Forms.Panel panelDESENC;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label label2;
     }
 }
 
