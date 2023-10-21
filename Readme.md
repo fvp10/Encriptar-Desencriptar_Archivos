@@ -113,4 +113,4 @@ El  proceso de desencriptación inicia cuando el usuario hace clic en "Desencrip
 
 🧑 Felix Valois - fvp10@alu.ua.es
 
-🧑 Jose Angel - jsg25@alu.ua.es
+🧑 Jose Angel - jasg25@alu.ua.es
