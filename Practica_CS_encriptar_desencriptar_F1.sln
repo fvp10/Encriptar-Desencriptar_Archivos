@@ -5,6 +5,8 @@ VisualStudioVersion = 17.7.34031.279
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Practica_CS_encriptar_desencriptar_F1", "Practica_CS_encriptar_desencriptar_F1\Practica_CS_encriptar_desencriptar_F1.csproj", "{9067582E-261D-4B00-8BA9-F3BD25E51D53}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Servidor", "Servidor\Servidor.csproj", "{C3CD20DB-7549-4B94-8F15-2DDECA319F23}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{9067582E-261D-4B00-8BA9-F3BD25E51D53}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9067582E-261D-4B00-8BA9-F3BD25E51D53}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9067582E-261D-4B00-8BA9-F3BD25E51D53}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3CD20DB-7549-4B94-8F15-2DDECA319F23}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3CD20DB-7549-4B94-8F15-2DDECA319F23}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3CD20DB-7549-4B94-8F15-2DDECA319F23}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3CD20DB-7549-4B94-8F15-2DDECA319F23}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

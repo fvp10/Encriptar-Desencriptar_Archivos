@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Readme.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="memoria-del-proyecto-de-encriptaci%C3%B3n-y-desencriptaci%C3%B3n">Memoria del Proyecto de Encriptación y Desencriptación</h1>
+<h2 id="%C3%ADndice-%F0%9F%93%91">Índice 📑</h2>
+<ul>
+<li><a href="#introducci%C3%B3n">Introducción</a> 🚀</li>
+<li><a href="#fases-del-proyecto">Fases del proyecto</a> 📈</li>
+<li><a href="#manual-de-usuario">Manual de usuario</a> 📖</li>
+<li><a href="#software">Software</a> 💻</li>
+<li><a href="#librer%C3%ADas">Librerías</a> 📚</li>
+<li><a href="#detalles-de-implementaci%C3%B3n">Detalles de implementación</a> 🔨
+<ul>
+<li><a href="#interfaz-din%C3%A1mica">Interfaz Dinámica</a> 🖥️</li>
+<li><a href="#encriptar">Encriptar</a> 🔒</li>
+<li><a href="#desencriptar">Desencriptar</a> 🔓</li>
+</ul>
+</li>
+<li><a href="#team">Team</a> 👫</li>
+</ul>
+<h2 id="introducci%C3%B3n-%F0%9F%9A%80">Introducción 🚀</h2>
+<p>Esto es una práctica dentro de la carrera <strong>Ing.Multimedia</strong> en la <strong>Universidad de Alicante</strong>. En este proyecto se realiza un trabajo en grupo (4 alumnos) relacionado con la seguridad y donde se pretende que desarrollemos conocimientos en el ambito de seguridad.</p>
+<p>El proyecto irá cambiando en función con las fases hasta tener un programa completo con todas las funcionalidades.</p>
+<h2 id="fases-del-proyecto-%F0%9F%93%88">Fases del proyecto 📈</h2>
+<table>
+<thead>
+<tr>
+<th>Fase</th>
+<th>Descripción</th>
+<th>Requisitos</th>
+<th>Estado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fase 1</td>
+<td>Implementación de un sistema que cifra y descifra archivos multimedia con AES256</td>
+<td>- Cifrado de al menos 6 archivos multimedia con claves diferentes <br> - Almacenamiento de claves en un archivo o base de datos</td>
+<td>✅ Completado</td>
+</tr>
+<tr>
+<td>Fase 2</td>
+<td>Diseño e implementación de un sistema para autentificar al administrador y encriptar claves AES con RSA</td>
+<td>- Autenticación del administrador <br> - Generación de claves RSA (pública y privada) <br> - Encriptación de claves AES con clave pública</td>
+<td>❌ Pendiente</td>
+</tr>
+<tr>
+<td>Fase 3</td>
+<td>Sistema para el acceso de usuarios a los contenidos cifrados</td>
+<td>- Generación de claves RSA para cada usuario <br> - Sistema de acceso a contenidos cifrados <br> - Mejoras en el sistema de autenticación</td>
+<td>❌ Pendiente</td>
+</tr>
+</tbody>
+</table>
+<h2 id="manual-de-usuario-%F0%9F%93%96">Manual de Usuario 📖</h2>
+<p><strong>Encriptar un Archivo</strong> 🔒</p>
+<ol>
+<li>Abre la aplicación.</li>
+<li>Haz clic en el botón &quot;Seleccionar Archivo&quot; y elije el archivo que deseas encriptar.</li>
+<li>Haz clic en &quot;Encriptar&quot;. El archivo encriptado se guardará en una carpeta específica, y se mostrará un mensaje de confirmación.</li>
+</ol>
+<p><strong>Desencriptar un Archivo</strong> 🔓</p>
+<ol>
+<li>En la lista de archivos encriptados, haz clic en &quot;Desencriptar&quot; al lado del archivo que desea desencriptar.</li>
+<li>El archivo desencriptado se guardará en otra carpeta, se borrara en la que se encontraba actualmente, y se mostrará un mensaje de confirmación.</li>
+</ol>
+<h2 id="software-%F0%9F%92%BB">Software 💻</h2>
+<ul>
+<li>
+<p><strong>Visual Studio:</strong> Entorno de desarrollo integrado de Microsoft utilizado para desarrollar aplicaciones, sitios web, servicios web y aplicaciones móviles.</p>
+</li>
+<li>
+<p><strong>.NET Framework</strong> Tecnología que soporta la construcción y ejecución de aplicaciones y servicios web, simplifica el desarrollo y la implementación de aplicaciones.</p>
+</li>
+</ul>
+<p><strong>Lenguaje: C#</strong></p>
+<h2 id="librer%C3%ADas-%F0%9F%93%9A">Librerías 📚</h2>
+<p><span style="font-size: larger; font-weight: bold; color:#ED9B40 ">Fase 1</span></p>
+<pre class="hljs"><code><div>System: Se usa para operaciones generales y básicas
+
+System.Collections.Generic: Almacenado y manipulación de dátos, como &quot;botonesYFilas&quot;.
+
+System.IO: Para la lectura y escritura de archivos.
+
+System.Windows.Forms: Construye y manipula la interfaz gráfica, como botones y paneles.
+
+System.Security.Cryptography:  Se utiliza para encriptar y desencriptar archivos.
+
+System.Linq: Se usa para manipular y consultar datos a la hora del uso del &quot;any&quot;.
+
+</div></code></pre>
+<!-- ### Fase 2
+```
+```
+### Fase 3
+```
+``` -->
+<h2 id="detalles-de-implementaci%C3%B3n-%F0%9F%94%A8">Detalles de implementación 🔨</h2>
+<p><span style="font-size: larger; font-weight: bold; color:#ED9B40 ">Fase 1</span></p>
+<h4 id="interfaz-din%C3%A1mica-%F0%9F%96%A5%EF%B8%8F">Interfaz Dinámica 🖥️</h4>
+<p>El código utiliza un diseño dinámico donde los archivos encriptados se muestran en tiempo real. Cuando un archivo se encripta, se agrega automáticamente a la lista visual en la interfaz de usuario. Esto se logra a través del método <span style="color:#9FD1F5">CrearNuevaFila()</span> que crea una nueva fila en la interfaz para cada archivo encriptado.</p>
+<p>Para borrar un archivo, se usa el método <span style="color:#9FD1F5">EliminarFila()</span> que remueve la fila de la interfaz y elimina el archivo encriptado, así como sus claves asociadas, del sistema de archivos.</p>
+<p>La actualización de la lista visual se realiza a través del método <span style="color:#9FD1F5">ActualizarLista()</span> , que limpia y reconstruye la lista de archivos encriptados basándose en los archivos presentes en el directorio de almacenamiento.</p>
+<p>Para verificar y listar los archivos encriptados al iniciar la aplicación, se utiliza el método <span style="color:#9FD1F5">ComprobarArchivosEncriptados()</span> .</p>
+<h4 id="encriptar-%F0%9F%94%92">Encriptar 🔒</h4>
+<p>El proceso de encriptación se inicia cuando el usuario selecciona un archivo para encriptar y hace clic en &quot;Encriptar&quot;. El evento asociado <strong>(encriptar__Click)</strong> llama al método  <span style="color:#9FD1F5">MetodoDeEncriptado()</span>.</p>
+<ol>
+<li>
+<p><span style="color:#9FD1F5">MetodoDeEncriptado()</span>: Este método se asegura de que un archivo esté seleccionado, genera una clave y un IV aleatorios, y procede a encriptar el archivo seleccionado. Utiliza AES para la encriptación.</p>
+</li>
+<li>
+<p><span style="color:#9FD1F5">GenerarClaveAleatoria() y GenerarIVAleatorio()</span>: Estos métodos usan RNGCryptoServiceProvider para generar una clave y un IV aleatorios.</p>
+</li>
+<li>
+<p>El archivo encriptado, junto con la clave y el IV, se almacenan en archivos separados dentro de un directorio específico.</p>
+</li>
+<li>
+<p>La interfaz se actualiza automáticamente para listar el nuevo archivo encriptado mediante el <span style="color:#9FD1F5">ActualizarLista()</span>.</p>
+</li>
+</ol>
+<h4 id="desencriptar-%F0%9F%94%93">Desencriptar 🔓</h4>
+<p>El  proceso de desencriptación inicia cuando el usuario hace clic en &quot;Desencriptar&quot; al lado de un archivo encriptado listado en la interfaz. El evento asociado <strong>(desencriptar__Click)</strong> llama al método <span style="color:#9FD1F5">Desencriptado()</span> .</p>
+<ol>
+<li>
+<p><span style="color:#9FD1F5">Desencriptado(String nombre)</span>: Este método recupera la clave y el IV asociados con el archivo encriptado desde sus archivos respectivos. Luego, utiliza estos para desencriptar el archivo.</p>
+</li>
+<li>
+<p>Utiliza AES para la desencriptación, especificando la clave y el IV, y el modo CBC.</p>
+</li>
+<li>
+<p>El archivo desencriptado se almacena en un directorio específico, y el usuario recibe una notificación de que la desencriptación fue exitosa.</p>
+</li>
+<li>
+<p>La interfaz se actualiza automáticamente para reflejar los cambios con el <span style="color:#9FD1F5">ActualizarLista()</span>, y el archivo desencriptado se puede acceder desde el directorio especificado.</p>
+</li>
+</ol>
+<!-- ### Fase 2
+### Fase 3 -->
+<h2 id="team-%F0%9F%91%A8%F0%9F%8F%BB%E2%80%8D%F0%9F%A4%9D%E2%80%8D%F0%9F%91%A8%F0%9F%8F%BB">Team 👨🏻‍🤝‍👨🏻</h2>
+<p>🧑 Yohannes Befikadu - ybbb2@alu.ua.es</p>
+<p>🧑 Valentino Quiles - vqmq1@alu.ua.es</p>
+<p>🧑 Felix Valois - fvp10@alu.ua.es</p>
+<p>🧑 Jose Angel - jsg25@alu.ua.es</p>
+
+</body>
+</html>
