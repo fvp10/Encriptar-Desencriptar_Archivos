@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 using System.Security.Cryptography;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
-using System.Drawing;
 using System.Linq;
 
 namespace Practica_CS_encriptar_desencriptar_F1
