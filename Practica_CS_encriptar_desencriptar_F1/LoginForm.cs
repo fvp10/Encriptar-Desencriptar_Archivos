@@ -10,49 +10,6 @@ using System.Windows.Forms;
 
 namespace Practica_CS_encriptar_desencriptar_F1
 {
-    //    public class AuthClient
-    //    {
-    //        private readonly HttpClient _httpClient;
-    //        private readonly string _authEndpoint;
-
-    //        public AuthClient(string authEndpoint)
-    //        {
-    //            _httpClient = new HttpClient();
-    //            _authEndpoint = authEndpoint;
-    //        }
-
-    //        public async Task<string> AuthenticateUser(string username, string kLogin)//APUNTADO EN NOTION
-    //        {
-    //            var requestData = new
-    //            {
-    //                Username = username,
-    //                KLogin = kLogin
-    //            };
-
-    //            var jsonContent = JsonConvert.SerializeObject(requestData);
-    //            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-    //            try
-    //            {
-    //                HttpResponseMessage response = await _httpClient.PostAsync(_authEndpoint, content);
-
-    //                if (response.IsSuccessStatusCode)
-    //                {
-    //                    string responseContent = await response.Content.ReadAsStringAsync();
-    //                    return responseContent;
-    //                }
-    //                else
-    //                {
-    //                    return $"Error: {response.StatusCode}";
-    //                }
-    //            }
-    //            catch (Exception ex)
-    //            {
-    //                return $"Exception: {ex.Message}";
-    //            }
-    //        }
-    //    }
-
 
 
 
@@ -177,3 +134,49 @@ namespace Practica_CS_encriptar_desencriptar_F1
         }
     }
 }
+
+
+
+//    public class AuthClient
+//    {
+//        private readonly HttpClient _httpClient;
+//        private readonly string _authEndpoint;
+
+//        public AuthClient(string authEndpoint)
+//        {
+//            _httpClient = new HttpClient();
+//            _authEndpoint = authEndpoint;
+//        }
+
+//        public async Task<string> AuthenticateUser(string username, string kLogin)//APUNTADO EN NOTION
+//        {
+//            var requestData = new
+//            {
+//                Username = username,
+//                KLogin = kLogin
+//            };
+
+//            var jsonContent = JsonConvert.SerializeObject(requestData);
+//            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+//            try
+//            {
+//                HttpResponseMessage response = await _httpClient.PostAsync(_authEndpoint, content);
+
+//                if (response.IsSuccessStatusCode)
+//                {
+//                    string responseContent = await response.Content.ReadAsStringAsync();
+//                    return responseContent;
+//                }
+//                else
+//                {
+//                    return $"Error: {response.StatusCode}";
+//                }
+//            }
+//            catch (Exception ex)
+//            {
+//                return $"Exception: {ex.Message}";
+//            }
+//        }
+//    }
+

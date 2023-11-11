@@ -191,6 +191,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
                     string clavePrivadaEncriptada = File.ReadAllText(rutaArchivoClavePrivada);
                     clavePrivada = DesencriptarClavePrivada(clavePrivadaEncriptada, kdatos);
                 }
+                //DESENCRIPTAR CLAVE AES CON CLAVE PRIVADA
                 RSACryptoServiceProvider rsaDecryptor = new RSACryptoServiceProvider();
                 rsaDecryptor.FromXmlString(clavePrivada); // Cargar la clave privada
                 byte[] claveDesencriptadaRSA = rsaDecryptor.Decrypt(claveEncriptadaRSA, false);
@@ -282,7 +283,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
                 string claveBase64 = Convert.ToBase64String(clave);
                 byte[] claveBase64Bytes = Encoding.UTF8.GetBytes(claveBase64);
 
-                // Encriptar la cadena Base 64 con RSA
+                // Encriptar laclave aleatoria con calvepublica
                 RSACryptoServiceProvider rsaEncryptor = new RSACryptoServiceProvider();
                 rsaEncryptor.FromXmlString(clavePublica); // Cargar la clave pública
                 byte[] claveEncriptadaRSA = rsaEncryptor.Encrypt(claveBase64Bytes, false);
