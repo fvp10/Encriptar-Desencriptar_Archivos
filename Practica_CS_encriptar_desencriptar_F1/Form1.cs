@@ -4,6 +4,7 @@ using System.IO;
 using System.Windows.Forms;
 using System.Security.Cryptography;
 using System.Linq;
+using System.Text;
 
 namespace Practica_CS_encriptar_desencriptar_F1
 {
@@ -19,14 +20,24 @@ namespace Practica_CS_encriptar_desencriptar_F1
         private string rutaGuardadoDESENC = "";
         private string nombreArc;
         private Random rnd = new Random();
+        ///Quitar cuando se implemente el servidor
+        private string kdatos;
+        private RSACryptoServiceProvider rsa;
+        private string clavePublica = "";
+        private string clavePrivada = "";
 
 
-        public Form1()
+
+        public Form1(string kdatosRecibidos)
         {
             InitializeComponent();
             ComprobarCarpeta();
             ComprobarArchivosEncriptados();
+            kdatos = kdatosRecibidos;
+            GenerarClavesRSA();
         }
+
+
 
         private void desencriptar__Click(object sender, EventArgs e)
         {
@@ -39,6 +50,21 @@ namespace Practica_CS_encriptar_desencriptar_F1
             MetodoDeEncriptado();
         }
 
+
+
+        private void GenerarClavesRSA()
+        {
+            rsa = new RSACryptoServiceProvider();
+            clavePrivada = rsa.ToXmlString(true); // Clave privada
+            clavePublica = rsa.ToXmlString(false); // Clave pública
+
+            // Encripta la clave privada con kdatos
+            //string clavePrivadaEncriptada = EncriptarClavePrivada(clavePrivada, kdatos);
+            // Guarda o maneja las claves según sea necesario
+        }
+
+
+
         private void Desencriptado(String nombre)
         {
 
@@ -46,13 +72,33 @@ namespace Practica_CS_encriptar_desencriptar_F1
             string RutArchivoIV = Path.Combine(rutaGuardado, nombre + "_IV.txt");
             string RutaArchivoENC = Path.Combine(rutaGuardado, nombre + ".enc");
 
-            byte[] key = Convert.FromBase64String(File.ReadAllText(RutaArchivoClave));
+            byte[] claveEncriptadaRSA = File.ReadAllBytes(RutaArchivoClave);
+
+            //DESENCRIPTADO RSA
+
+            RSACryptoServiceProvider rsaDecryptor = new RSACryptoServiceProvider();
+            rsaDecryptor.FromXmlString(clavePrivada); // Cargar la clave privada
+            byte[] claveDesencriptadaRSA;
+            try
+            {
+                claveDesencriptadaRSA = rsaDecryptor.Decrypt(claveEncriptadaRSA, false);
+            }
+            catch (CryptographicException e)
+            {
+                // Considera agregar manejo de excepciones adecuado aquí
+                throw new Exception("Error al desencriptar la clave: " + e.Message);
+            }
+
+            // Convertir los bytes desencriptados de vuelta a una cadena Base 64 y luego a bytes para obtener la clave AES original
+            string claveAESBase64 = Encoding.UTF8.GetString(claveDesencriptadaRSA);
+            byte[] claveAES = Convert.FromBase64String(claveAESBase64);
+
             byte[] iv = File.ReadAllBytes(RutArchivoIV);
 
 
             using (Aes objetoAes = Aes.Create())
             {
-                objetoAes.Key = key;
+                objetoAes.Key = claveAES;
                 objetoAes.IV = iv;
                 objetoAes.Mode = CipherMode.CBC; // Modo CBC
 
@@ -112,7 +158,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
             byte[] iv = GenerarIVAleatorio();
             nombreArc = Path.GetFileName(archivoOriginal);
 
-           
+
 
             comprobarRepetidos(nombreArc);
 
@@ -123,38 +169,35 @@ namespace Practica_CS_encriptar_desencriptar_F1
                 objetoAes.IV = iv;
                 objetoAes.Mode = CipherMode.CBC; // Modo CBC
 
+                // Convertir la clave AES a Base 64
                 string claveBase64 = Convert.ToBase64String(clave);
 
-                // Escribe la clave Base64 en otro archivo a parte
-                string archivoClave = Path.Combine(rutaGuardado, nombreArc + "_clave.txt");
-                File.WriteAllText(archivoClave, claveBase64);
+                // Encriptar la cadena Base 64 con RSA
+                RSACryptoServiceProvider rsaEncryptor = new RSACryptoServiceProvider();
+                rsaEncryptor.FromXmlString(clavePublica); // Cargar la clave pública
+                byte[] claveEncriptadaRSA = rsaEncryptor.Encrypt(Encoding.UTF8.GetBytes(claveBase64), false);
 
-                //Escribe elIV en otro archivo a parte
-                //-----------------PREGUNTAR SI EL IV HAY QUE PASARLO A BASE64---------------------------
+                // Guardar la clave encriptada RSA como bytes
+                string archivoClave = Path.Combine(rutaGuardado, nombreArc + "_clave.txt");
+                File.WriteAllBytes(archivoClave, claveEncriptadaRSA);
+
+
+
+
                 string archivoIV = Path.Combine(rutaGuardado, nombreArc + "_IV.txt");
                 File.WriteAllBytes(archivoIV, iv);
 
-                // Crear un flujo de cifrado
-                //el obtejo de ICryptoTransform es la transformación de archivo desencriptado a encriptado y viceversa
-                //se inicializa con el resultado del método "CreateEncryptor()" que es la interfaz que define la funcionalidad básica para transformar datos(cifrar/descifrar).
+
                 using (ICryptoTransform cifrado = objetoAes.CreateEncryptor())
                 {
                     // Ruta donde se guardará el archivo encriptado
                     string archivoEncriptado = Path.Combine(rutaGuardado, nombreArc + ".enc");
 
-                    // Crear un flujo de escritura para el archivo encriptado
-                    //archivoenc representa el archivo encriptado en el que estamos escribiendo datos
-                    //FileMode.Create es un modo para abrir archivos, el cual crea un nuevo archivo si no existe o lo sobrescribe
                     using (FileStream archivoenc = new FileStream(archivoEncriptado, FileMode.Create))
                     {
-                        // Escribir el IV en el archivo encriptado (para uso posterior durante la desencriptación)
-                        //archivoenc representa el archivo encriptado en el que estamos escribiendo datos
-                        //el 0 indica desde donde comienza a leer los bites
+
                         archivoenc.Write(iv, 0, iv.Length);
 
-                        // Crear un flujo de lectura para el archivo original con FileMode.Open
-                        //Este flujo de lectura se utilizará para leer los datos del archivo original
-                        //y luego cifrarlos antes de escribirlos en el archivo encriptado.
                         using (FileStream fsIn = new FileStream(archivoOriginal, FileMode.Open))
                         {
                             //Crear un flujo de cifrado para cifrar los datos
@@ -224,7 +267,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
         {
             // CREACION DE LAS FILAS
             Label txtCifrado = new Label();
-            
+
             txtCifrado.Text = nombreArc; //ESTO ES TEMPORAL YA QUE HABRÁ QUE PONER EL ARCHIVO CIFRADO
             txtCifrado.Width = 150;
             txtCifrado.Height = 30;
@@ -261,8 +304,8 @@ namespace Practica_CS_encriptar_desencriptar_F1
             posicionVertical += nuevaFila.Height + 5; // Puedes ajustar el espacio entre filas
 
             // Asigna un manejador de eventos a los botones de la fila
-            btnDesencriptar.Click +=  (sender, e ) => Desencriptado(txtCifrado.Text);
-            btnBorrar.Click += (sender, e) => EliminarFila(nuevaFila, txtCifrado.Text,1);//he quitado + ".enc"
+            btnDesencriptar.Click += (sender, e) => Desencriptado(txtCifrado.Text);
+            btnBorrar.Click += (sender, e) => EliminarFila(nuevaFila, txtCifrado.Text, 1);//he quitado + ".enc"
 
             // Agrega la nueva fila al panel de contenedor
             panelContenedor.Controls.Add(nuevaFila);
@@ -270,9 +313,9 @@ namespace Practica_CS_encriptar_desencriptar_F1
             txt1.Text = "";
         }
 
-        private void EliminarFila(Panel fila,string nombreArchivo,int modo)
+        private void EliminarFila(Panel fila, string nombreArchivo, int modo)
         {
-            if(modo == 1)
+            if (modo == 1)
             {
                 BorrarArchivoEncriptado(nombreArchivo);
                 // Elimina la fila del panel de contenedor y del diccionario
@@ -286,7 +329,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
                 panelDESENC.Controls.Remove(fila);
                 panelDESENC.Controls.Clear();
             }
-           
+
             // Busca y elimina la entrada correspondiente en el diccionario
             foreach (var kvp in botonesYFilas)
             {
@@ -314,9 +357,9 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
         private void BorrarArchivoEncriptado(string nombreArchivo)
         {
-            
-            string rutaArchivoEncriptado = Path.Combine(rutaGuardado, nombreArchivo+".enc");
-            string rutaClave = Path.Combine(rutaGuardado, nombreArchivo+"_clave.txt");
+
+            string rutaArchivoEncriptado = Path.Combine(rutaGuardado, nombreArchivo + ".enc");
+            string rutaClave = Path.Combine(rutaGuardado, nombreArchivo + "_clave.txt");
             string rutaIV = Path.Combine(rutaGuardado, nombreArchivo + "_IV.txt");
             // Verifica si existen los archivos
             if (File.Exists(rutaArchivoEncriptado) && File.Exists(rutaClave) && File.Exists(rutaIV))
@@ -334,7 +377,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
         }
 
         private void comprobarRepetidos(String nom)
-        {     
+        {
             string[] archivos = Directory.GetFiles(rutaGuardado, "*.enc");
 
             if (archivos.Length != 0)
@@ -389,7 +432,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
             // Incrementa la posición vertical para la próxima fila
             posicionVerticalDESENC += nuevaFila.Height + 5; // Puedes ajustar el espacio entre filas
 
-            btnBorrar.Click += (sender, e) => EliminarFila(nuevaFila, txtDESENC.Text,2);//he quitado + ".enc"
+            btnBorrar.Click += (sender, e) => EliminarFila(nuevaFila, txtDESENC.Text, 2);//he quitado + ".enc"
 
             panelDESENC.Controls.Add(nuevaFila);
 
@@ -451,6 +494,10 @@ namespace Practica_CS_encriptar_desencriptar_F1
             }
         }
 
+        /// <summary>
+        /// tenemos que hacer una carpeta antes que tenga el nombre del usuario y dentro se tienen que crear las carpetas de CEN y DES
+        /// hay que cambiar la ruta para que se crean estos archvios
+        /// </summary>
         public void ComprobarCarpeta()
         {
             string carpetaPractica = Path.Combine(Environment.CurrentDirectory, "CSarchivosENC");
