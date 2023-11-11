@@ -89,10 +89,18 @@ namespace Practica_CS_encriptar_desencriptar_F1
             {
                 HttpResponseMessage response = await _httpClient.PostAsync(ServerUrl, content);
 
+                string responseContent = await response.Content.ReadAsStringAsync();
+
                 if (response.IsSuccessStatusCode)
                 {
-                    string responseContent = await response.Content.ReadAsStringAsync();
-                    return responseContent == "Success";
+                    // Aquí asumimos que el servidor devuelve un objeto JSON con una propiedad 'message'
+                    var responseObject = JsonConvert.DeserializeObject<dynamic>(responseContent);
+                    return responseObject?.message == "Autenticación exitosa.";
+                }
+                else
+                {
+                    // Manejo de diferentes respuestas no exitosas
+                    MessageBox.Show($"Error en la autenticación: {response.StatusCode}\n{responseContent}");
                 }
             }
             catch (Exception ex)

@@ -162,15 +162,6 @@ public class UsuarioModel
             var nombreUsuario = root.GetProperty("NombreUsuario").GetString();
             var kLogin = root.GetProperty("KLogin").GetString();
 
-            var publicKeyPath = Path.Combine(userPath, "publicKey.xml");
-            var publicKey = File.Exists(publicKeyPath) ? File.ReadAllText(publicKeyPath) : null;
-
-            var privateKeyEncryptedPath = Path.Combine(userPath, "privateKeyEncrypted.xml");
-            var privateKeyEncrypted = File.Exists(privateKeyEncryptedPath) ? File.ReadAllText(privateKeyEncryptedPath) : null;
-
-
-
-
             return BCrypt.Net.BCrypt.Verify(password, kLogin);
 
         }
@@ -178,34 +169,6 @@ public class UsuarioModel
 
 
     }
-
-    //Este metodo para ellos cuando se la pasen los datos para desencriptar la clave privada
-    //private string DecryptWithPassword(string cipherText, string password)
-    //{
-    //    byte[] cipherBytes = Convert.FromBase64String(cipherText);
-
-    //    // Usar la contraseña directamente como antes; aunque esto es inseguro y solo para demostración.
-    //    byte[] key = new byte[32]; // AES requiere una clave de 256 bits para AES-256
-    //    byte[] iv = new byte[16]; // El IV siempre necesita 16 bytes para AES
-    //    Array.Copy(Encoding.UTF8.GetBytes(password.PadRight(key.Length)), key, key.Length);
-    //    Array.Copy(Encoding.UTF8.GetBytes(password.PadRight(iv.Length)), iv, iv.Length);
-
-    //    using (Aes aes = Aes.Create())
-    //    {
-    //        aes.Key = key;
-    //        aes.IV = iv;
-    //        aes.Mode = CipherMode.CBC;
-
-    //        using (var ms = new MemoryStream())
-    //        {
-    //            using (var cs = new CryptoStream(ms, aes.CreateDecryptor(), CryptoStreamMode.Write))
-    //            {
-    //                cs.Write(cipherBytes, 0, cipherBytes.Length);
-    //            }
-    //            return Encoding.Unicode.GetString(ms.ToArray());
-    //        }
-    //    }
-    //}
 
     public object GetUserDetails(string username)
     {
