@@ -78,20 +78,8 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
             RSACryptoServiceProvider rsaDecryptor = new RSACryptoServiceProvider();
             rsaDecryptor.FromXmlString(clavePrivada); // Cargar la clave privada
-            byte[] claveDesencriptadaRSA;
-            try
-            {
-                claveDesencriptadaRSA = rsaDecryptor.Decrypt(claveEncriptadaRSA, false);
-            }
-            catch (CryptographicException e)
-            {
-                // Considera agregar manejo de excepciones adecuado aquí
-                throw new Exception("Error al desencriptar la clave: " + e.Message);
-            }
-
-            // Convertir los bytes desencriptados de vuelta a una cadena Base 64 y luego a bytes para obtener la clave AES original
-            string claveAESBase64 = Encoding.UTF8.GetString(claveDesencriptadaRSA);
-            byte[] claveAES = Convert.FromBase64String(claveAESBase64);
+            byte[] claveDesencriptadaRSA = rsaDecryptor.Decrypt(claveEncriptadaRSA, false);
+            byte[] claveAES = Convert.FromBase64String(Encoding.UTF8.GetString(claveDesencriptadaRSA));
 
             byte[] iv = File.ReadAllBytes(RutArchivoIV);
 
@@ -171,11 +159,12 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
                 // Convertir la clave AES a Base 64
                 string claveBase64 = Convert.ToBase64String(clave);
+                byte[] claveBase64Bytes = Encoding.UTF8.GetBytes(claveBase64);
 
                 // Encriptar la cadena Base 64 con RSA
                 RSACryptoServiceProvider rsaEncryptor = new RSACryptoServiceProvider();
                 rsaEncryptor.FromXmlString(clavePublica); // Cargar la clave pública
-                byte[] claveEncriptadaRSA = rsaEncryptor.Encrypt(Encoding.UTF8.GetBytes(claveBase64), false);
+                byte[] claveEncriptadaRSA = rsaEncryptor.Encrypt(claveBase64Bytes, false);
 
                 // Guardar la clave encriptada RSA como bytes
                 string archivoClave = Path.Combine(rutaGuardado, nombreArc + "_clave.txt");

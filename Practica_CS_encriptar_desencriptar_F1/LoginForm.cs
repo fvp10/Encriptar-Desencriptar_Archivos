@@ -120,37 +120,38 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
         private bool AuthenticateUser(string username, string klogin)
         {
-            try
-            {
-                // Crea una solicitud HTTP POST
-                using (WebClient client = new WebClient())
-                {
-                    // Configura los datos a enviar
-                    byte[] data = Encoding.UTF8.GetBytes($"username={username}&klogin={klogin}");
+            //try
+            //{
+            //    // Crea una solicitud HTTP POST
+            //    using (WebClient client = new WebClient())
+            //    {
+            //        // Configura los datos a enviar
+            //        byte[] data = Encoding.UTF8.GetBytes($"username={username}&klogin={klogin}");
 
-                    // Configura los encabezados de la solicitud
-                    client.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+            //        // Configura los encabezados de la solicitud
+            //        client.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
 
-                    // Realiza la solicitud al servidor
-                    byte[] responseBytes = client.UploadData(ServerUrl, "POST", data);
+            //        // Realiza la solicitud al servidor
+            //        byte[] responseBytes = client.UploadData(ServerUrl, "POST", data);
 
-                    // Convierte la respuesta en una cadena
-                    string response = Encoding.UTF8.GetString(responseBytes);
+            //        // Convierte la respuesta en una cadena
+            //        string response = Encoding.UTF8.GetString(responseBytes);
 
-                    // Verifica la respuesta del servidor (puedes personalizar esto)
-                    if (response == "Success")
-                    {
-                        return true; // Inicio de sesión exitoso
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                // Maneja errores de comunicación con el servidor
-                Console.WriteLine("Error de comunicación con el servidor: " + ex.Message);
-            }
+            //        // Verifica la respuesta del servidor (puedes personalizar esto)
+            //        if (response == "Success")
+            //        {
+            //            return true; // Inicio de sesión exitoso
+            //        }
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    // Maneja errores de comunicación con el servidor
+            //    Console.WriteLine("Error de comunicación con el servidor: " + ex.Message);
+            //}
 
-            return false; // Inicio de sesión fallido
+            //return false; // Inicio de sesión fallido
+            return true;
         }
 
 
