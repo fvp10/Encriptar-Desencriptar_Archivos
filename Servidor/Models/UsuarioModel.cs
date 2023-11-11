@@ -77,7 +77,7 @@ public class UsuarioModel
                 // Obtener la clave pública y privada
                 var publicKey = rsa.ToXmlString(false); // Solo la clave pública
                 var privateKey = rsa.ToXmlString(true); // La clave privada 
-                
+
 
                 // Cifrar la clave privada con KDatos
                 var encryptedPrivateKey = EncryptWithPassword(privateKey, kDatos);
@@ -112,7 +112,7 @@ public class UsuarioModel
         {
             // La carpeta "CSarchivosENC" no existe, créala
             Directory.CreateDirectory(carpetaPractica2);
-        }  
+        }
     }
 
     private string EncryptWithPassword(string clearText, string password)
@@ -247,7 +247,30 @@ public class UsuarioModel
     //COMPRESION DE LA CARPETA DEL USUARIO PARA QUE LA PODAMOS MANDAR
     public void ComprimirCarpeta(string carpetaOrigen, string archivoDestino)
     {
-        ZipFile.CreateFromDirectory(carpetaOrigen, archivoDestino);
+        // Crear una carpeta temporal
+        var tempFolder = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempFolder);
+
+        // Copiar todos los archivos y carpetas de 'carpetaOrigen' a 'tempFolder', excluyendo 'usuario.json'
+        foreach (var dirPath in Directory.GetDirectories(carpetaOrigen, "*", SearchOption.AllDirectories))
+        {
+            Directory.CreateDirectory(dirPath.Replace(carpetaOrigen, tempFolder));
+        }
+
+        foreach (var file in Directory.GetFiles(carpetaOrigen, "*.*", SearchOption.AllDirectories))
+        {
+            if (!file.EndsWith("usuario.json"))
+            {
+                var tempFilePath = file.Replace(carpetaOrigen, tempFolder);
+                File.Copy(file, tempFilePath, true);
+            }
+        }
+
+        // Comprimir la carpeta temporal
+        ZipFile.CreateFromDirectory(tempFolder, archivoDestino);
+
+        // Eliminar la carpeta temporal
+        Directory.Delete(tempFolder, true);
     }
 
     public string GetUsersFolderPath()
