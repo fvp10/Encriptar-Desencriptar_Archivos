@@ -107,7 +107,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
             if (authenticated)
             {
-                MessageBox.Show($"Inicio de sesión exitoso\nUsername: {username}");
+                MessageBox.Show($"Inicio de sesión exitoso\nUsername: {username}\nkdatos: {kdatos}\nklogin: {klogin}");
                 this.Hide(); // OCULTAMOS EL LOGIN
                 Form1 main = new Form1(kdatos);   //CREAMOS UN NUEVO FORM 
                 main.Show(); //LO MOSTRAMOS 
