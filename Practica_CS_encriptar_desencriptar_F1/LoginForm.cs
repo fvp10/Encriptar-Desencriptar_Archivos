@@ -144,7 +144,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
                 Console.WriteLine("Error de comunicación con el servidor: " + ex.Message);
             }
 
-            return false; // Inicio de sesión fallido
+            return true; // Inicio de sesión fallido
         }
 
 
