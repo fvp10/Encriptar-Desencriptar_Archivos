@@ -65,7 +65,11 @@ namespace Practica_CS_encriptar_desencriptar_F1
             MetodoDeEncriptado();
         }
 
-
+        private void GuardarClavePrivadaEncriptada(string clavePrivadaEncriptada)
+        {
+            string rutaArchivoClavePrivada = Path.Combine(rutaGuardado, "clavePrivadaEncriptada.txt");
+            File.WriteAllText(rutaArchivoClavePrivada, clavePrivadaEncriptada);
+        }
 
         private void GenerarClavesRSA()
         {
@@ -75,6 +79,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
             // Encripta la clave privada con kdatos
             clavePrivadaEn = EncriptarClavePrivada(clavePrivada, kdatos);
+            GuardarClavePrivadaEncriptada(clavePrivadaEn);
             // Guarda o maneja las claves según sea necesario
         }
 
@@ -170,20 +175,26 @@ namespace Practica_CS_encriptar_desencriptar_F1
             string RutArchivoIV = Path.Combine(rutaGuardado, nombre + "_IV.txt");
             string RutaArchivoENC = Path.Combine(rutaGuardado, nombre + ".enc");
 
-            byte[] claveEncriptadaRSA = File.ReadAllBytes(RutaArchivoClave);
+            byte[] claveEncriptadaRSA = File.ReadAllBytes(RutaArchivoClave); // Corregido para leer la clave RSA encriptada correcta
+
 
             //DESENCRIPTADO RSA
             //Desencripto clave privada
             if (ComprobarKdatos(kdatos, kdatosServidor))
             {
-                string cPrivada = DesencriptarClavePrivada(clavePrivadaEn, kdatos);
+                string rutaArchivoClavePrivada = Path.Combine(rutaGuardado, "clavePrivadaEncriptada.txt");
+                if (File.Exists(rutaArchivoClavePrivada))
+                {
+                    string clavePrivadaEncriptada = File.ReadAllText(rutaArchivoClavePrivada);
+                    clavePrivada = DesencriptarClavePrivada(clavePrivadaEncriptada, kdatos);
+                }
                 RSACryptoServiceProvider rsaDecryptor = new RSACryptoServiceProvider();
-                rsaDecryptor.FromXmlString(cPrivada); // Cargar la clave privada
+                rsaDecryptor.FromXmlString(clavePrivada); // Cargar la clave privada
                 byte[] claveDesencriptadaRSA = rsaDecryptor.Decrypt(claveEncriptadaRSA, false);
                 byte[] claveAES = Convert.FromBase64String(Encoding.UTF8.GetString(claveDesencriptadaRSA));
 
                 byte[] iv = File.ReadAllBytes(RutArchivoIV);
-
+                //byte[] key = Convert.FromBase64String(File.ReadAllText(RutaArchivoClave));
 
                 using (Aes objetoAes = Aes.Create())
                 {
