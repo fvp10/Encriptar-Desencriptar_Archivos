@@ -20,12 +20,28 @@ namespace Practica_CS_encriptar_desencriptar_F1
         private string nombreArc;
         private Random rnd = new Random();
 
+        ///Quitar cuando se implemente el servidor
+        private string kdatos = "";
+        private RSACryptoServiceProvider rsa;
+        private string clavePublica = "";
+        private string clavePrivada = "";
+        private string clavePrivadaEn = "";
+        private string kdatosServidor = "";
+        private byte[] kdatosHash;//para pasar a 32bytes
+        private byte[] ivGlobal; // Almacena el IV utilizado en la encriptación
+
+
+
 
         public Form1()
         {
             InitializeComponent();
             ComprobarCarpeta();
             ComprobarArchivosEncriptados();
+
+            kdatos = kdatosRecibidos;
+            kdatosServidor = kdatos; // Asumo que obtienes este valor de algún lugar
+            GenerarClavesRSA();
         }
 
         private void desencriptar__Click(object sender, EventArgs e)
