@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
@@ -64,7 +65,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
     public partial class LoginForm : Form
     {
         //private AuthClient _authClient;
-
+        private const string ServerUrl = "https://www.ejemplo.com/autenticacion";
         public LoginForm()
         {
             InitializeComponent();
@@ -102,26 +103,54 @@ namespace Practica_CS_encriptar_desencriptar_F1
             // CUANDO HAYA SERVIDOR: Envía kLogin al servidor para autenticación
             //string response = await _authClient.AuthenticateUser(username, hashedKlogin);
 
-            if (AuthenticateUser(username, klogin))
-            {
-                MessageBox.Show($"Inicio correcto\nUsername: {username}\nkdatos: {kdatos}\nklogin: {klogin}");
-                MessageBox.Show("inicio correcto");
+            bool authenticated = AuthenticateUser(username, klogin);
 
+            if (authenticated)
+            {
+                MessageBox.Show($"Inicio de sesión exitoso\nUsername: {username}");
                 this.Hide(); // OCULTAMOS EL LOGIN
                 Form1 main = new Form1(kdatos);   //CREAMOS UN NUEVO FORM 
                 main.Show(); //LO MOSTRAMOS 
             }
             else
             {
-                MessageBox.Show($"Datos Incorrectos");
+                MessageBox.Show("Inicio de sesión fallido");
             }
         }
 
         private bool AuthenticateUser(string username, string klogin)
         {
-            // Aquí iría la lógica para autenticar al usuario
-            // Por ahora, vamos a simular que la autenticación siempre es exitosa
-            return true;
+            try
+            {
+                // Crea una solicitud HTTP POST
+                using (WebClient client = new WebClient())
+                {
+                    // Configura los datos a enviar
+                    byte[] data = Encoding.UTF8.GetBytes($"username={username}&klogin={klogin}");
+
+                    // Configura los encabezados de la solicitud
+                    client.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+
+                    // Realiza la solicitud al servidor
+                    byte[] responseBytes = client.UploadData(ServerUrl, "POST", data);
+
+                    // Convierte la respuesta en una cadena
+                    string response = Encoding.UTF8.GetString(responseBytes);
+
+                    // Verifica la respuesta del servidor (puedes personalizar esto)
+                    if (response == "Success")
+                    {
+                        return true; // Inicio de sesión exitoso
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Maneja errores de comunicación con el servidor
+                Console.WriteLine("Error de comunicación con el servidor: " + ex.Message);
+            }
+
+            return false; // Inicio de sesión fallido
         }
 
 
