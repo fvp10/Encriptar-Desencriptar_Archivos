@@ -39,20 +39,10 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
             kdatos = kdatosRecibidos;
             kdatosServidor = kdatos; // Asumo que obtienes este valor de algún lugar
-            GenerarClavesRSA();
 
         }
 
-        //private void ComprobarKdatos(string kdatos1, string kdatosServidor1)
-        //{
-        //    if (kdatos1 != kdatosServidor1)
-        //    {
-        //        MessageBox.Show("Error al iniciar sesión");
-        //        this.Hide(); // Ocultamos el formulario actual
-        //        LoginForm main = new LoginForm(); // Creamos un nuevo formulario de inicio de sesión
-        //        main.Show(); // Mostramos el nuevo formulario
-        //    }
-        //}
+
 
         private void desencriptar__Click(object sender, EventArgs e)
         {
@@ -71,81 +61,23 @@ namespace Practica_CS_encriptar_desencriptar_F1
             File.WriteAllText(rutaArchivoClavePrivada, clavePrivadaEncriptada);
         }
 
-        private void GenerarClavesRSA()
-        {
-            rsa = new RSACryptoServiceProvider(2048);
-            clavePrivada = rsa.ToXmlString(true); // Clave privada
-            clavePublica = rsa.ToXmlString(false); // Clave pública
-
-            // Encripta la clave privada con kdatos
-            clavePrivadaEn = EncriptarClavePrivada(clavePrivada, kdatos);
-            GuardarClavePrivadaEncriptada(clavePrivadaEn);
-            // Guarda o maneja las claves según sea necesario
-        }
-
-        private string EncriptarClavePrivada(string clavePrivada, string kdatos)
-        {
-            using (SHA256 sha256 = SHA256.Create())
-            {
-                kdatosHash = sha256.ComputeHash(Encoding.UTF8.GetBytes(kdatos));
-
-                using (Aes aesAlg = Aes.Create())
-                {
-                    aesAlg.Key = kdatosHash;
-                    ivGlobal = aesAlg.IV; // Guarda el IV para la desencriptación
-
-                    ICryptoTransform encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
-
-                    using (MemoryStream msEncrypt = new MemoryStream())
-                    {
-                        using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
-                        {
-                            using (StreamWriter swEncrypt = new StreamWriter(csEncrypt))
-                            {
-                                swEncrypt.Write(clavePrivada); // Escribe la clave privada como string
-                            }
-                        }
-
-                        // Devuelve la clave privada encriptada y el IV como un único string Base64
-                        byte[] encryptedData = msEncrypt.ToArray();
-                        return Convert.ToBase64String(ivGlobal.Concat(encryptedData).ToArray());
-                    }
-                }
-            }
-        }
 
 
-        private bool ComprobarKdatos(string kdatosRecibidos, string kdatosServidor)
-        {
-            // Transforma kdatosRecibidos de la misma manera que kdatos original
-            using (SHA256 sha256 = SHA256.Create())
-            {
-                byte[] kdatosRecibidosHash = sha256.ComputeHash(Encoding.UTF8.GetBytes(kdatosRecibidos));
-
-                // Compara las versiones transformadas de kdatos
-                if (kdatosRecibidos.SequenceEqual(kdatosServidor))
-                {
-                    MessageBox.Show("kdatos coincide con la original utilizada para encriptar la clave privada.");
-                    return true;
-                }
-                else
-                {
-                    MessageBox.Show("kdatos no coincide con la original.");
-                    return false;
-                }
-            }
-        }
 
         //clavePrivadaEncriptada la obtengo del servidor
         private string DesencriptarClavePrivada(string clavePrivadaEncriptada, string kdatos)
         {
-            byte[] fullCipher = Convert.FromBase64String(clavePrivadaEncriptada);
+            //Este es el encabezado del método. Toma dos parámetros: clavePrivadaEncriptada,
+            //que es la clave privada RSA cifrada en formato de cadena Base64, y kdatos,
+            //que se usa para generar la clave de desencriptación AES.
+            byte[] TodoCifrado = Convert.FromBase64String(clavePrivadaEncriptada);
 
             using (SHA256 sha256 = SHA256.Create())
             {
-                byte[] key = sha256.ComputeHash(Encoding.UTF8.GetBytes(kdatos));
-                byte[] iv = fullCipher.Take(16).ToArray(); // Extrae el IV (primeros 16 bytes)
-                byte[] cipherText = fullCipher.Skip(16).ToArray(); // Extrae el texto cifrado
+
+                byte[] key = sha256.ComputeHash(Encoding.UTF8.GetBytes(kdatos));//calve debe tener un tamaño adecuado y seguro para el cifrado AES
+                byte[] iv = TodoCifrado.Take(16).ToArray(); // Extrae el IV (primeros 16 bytes)
+                byte[] textocifrado = TodoCifrado.Skip(16).ToArray(); // Extrae el texto cifrado
 
                 using (Aes aesAlg = Aes.Create())
                 {
@@ -154,7 +86,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
                     ICryptoTransform decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
 
-                    using (MemoryStream msDecrypt = new MemoryStream(cipherText))
+                    using (MemoryStream msDecrypt = new MemoryStream(textocifrado))
                     {
                         using (CryptoStream csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
                         {
@@ -181,71 +113,66 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
             //DESENCRIPTADO RSA
             //Desencripto clave privada
-            if (ComprobarKdatos(kdatos, kdatosServidor))
+
+            //DESENCRIPTAR CLAVE PRIVADA
+            string rutaArchivoClavePrivada = Path.Combine(rutaGuardado, "clavePrivadaEncriptada.txt");
+            if (File.Exists(rutaArchivoClavePrivada))
             {
+                string clavePrivadaEncriptada = File.ReadAllText(rutaArchivoClavePrivada);
+                clavePrivada = DesencriptarClavePrivada(clavePrivadaEncriptada, kdatos);
+            }
 
-                //DESENCRIPTAR CLAVE PRIVADA
-                string rutaArchivoClavePrivada = Path.Combine(rutaGuardado, "clavePrivadaEncriptada.txt");
-                if (File.Exists(rutaArchivoClavePrivada))
+
+            //***DESENCRIPTAR CLAVE AES CON CLAVE PRIVADA***
+            RSACryptoServiceProvider rsaDecryptor = new RSACryptoServiceProvider();
+            rsaDecryptor.FromXmlString(clavePrivada); // Cargar la clave privada
+            byte[] claveDesencriptadaRSA = rsaDecryptor.Decrypt(claveEncriptadaRSA, false);
+            byte[] claveAES = Convert.FromBase64String(Encoding.UTF8.GetString(claveDesencriptadaRSA));
+
+            byte[] iv = File.ReadAllBytes(RutArchivoIV);
+            //byte[] key = Convert.FromBase64String(File.ReadAllText(RutaArchivoClave));
+
+            using (Aes objetoAes = Aes.Create())
+            {
+                objetoAes.Key = claveAES;
+                objetoAes.IV = iv;
+                objetoAes.Mode = CipherMode.CBC; // Modo CBC
+
+                // Crear un flujo de descifrado
+                using (ICryptoTransform descifrado = objetoAes.CreateDecryptor())
                 {
-                    string clavePrivadaEncriptada = File.ReadAllText(rutaArchivoClavePrivada);
-                    clavePrivada = DesencriptarClavePrivada(clavePrivadaEncriptada, kdatos);
-                }
-                //DESENCRIPTAR CLAVE AES CON CLAVE PRIVADA
-                RSACryptoServiceProvider rsaDecryptor = new RSACryptoServiceProvider();
-                rsaDecryptor.FromXmlString(clavePrivada); // Cargar la clave privada
-                byte[] claveDesencriptadaRSA = rsaDecryptor.Decrypt(claveEncriptadaRSA, false);
-                byte[] claveAES = Convert.FromBase64String(Encoding.UTF8.GetString(claveDesencriptadaRSA));
+                    // Ruta donde se guardará el archivo desencriptado
+                    string archivoDesencriptado = Path.Combine(rutaGuardadoDESENC, nombre);
 
-                byte[] iv = File.ReadAllBytes(RutArchivoIV);
-                //byte[] key = Convert.FromBase64String(File.ReadAllText(RutaArchivoClave));
-
-                using (Aes objetoAes = Aes.Create())
-                {
-                    objetoAes.Key = claveAES;
-                    objetoAes.IV = iv;
-                    objetoAes.Mode = CipherMode.CBC; // Modo CBC
-
-                    // Crear un flujo de descifrado
-                    using (ICryptoTransform descifrado = objetoAes.CreateDecryptor())
+                    // Crear un flujo de escritura para el archivo desencriptado
+                    using (FileStream archivoDesenc = new FileStream(archivoDesencriptado, FileMode.Create))
                     {
-                        // Ruta donde se guardará el archivo desencriptado
-                        string archivoDesencriptado = Path.Combine(rutaGuardadoDESENC, nombre);
-
-                        // Crear un flujo de escritura para el archivo desencriptado
-                        using (FileStream archivoDesenc = new FileStream(archivoDesencriptado, FileMode.Create))
+                        // Crear un flujo de lectura para el archivo encriptado
+                        using (FileStream fsIn = new FileStream(RutaArchivoENC, FileMode.Open))
                         {
-                            // Crear un flujo de lectura para el archivo encriptado
-                            using (FileStream fsIn = new FileStream(RutaArchivoENC, FileMode.Open))
-                            {
-                                // Leer el IV desde el archivo encriptado
-                                fsIn.Read(iv, 0, iv.Length);
+                            // Leer el IV desde el archivo encriptado
+                            fsIn.Read(iv, 0, iv.Length);
 
-                                // Crear un flujo de cifrado para descifrar los datos
-                                using (CryptoStream cs = new CryptoStream(fsIn, descifrado, CryptoStreamMode.Read))
+                            // Crear un flujo de cifrado para descifrar los datos
+                            using (CryptoStream cs = new CryptoStream(fsIn, descifrado, CryptoStreamMode.Read))
+                            {
+                                // Leer el archivo encriptado y escribir los datos descifrados en el archivo desencriptado
+                                int data;
+                                while ((data = cs.ReadByte()) != -1)
                                 {
-                                    // Leer el archivo encriptado y escribir los datos descifrados en el archivo desencriptado
-                                    int data;
-                                    while ((data = cs.ReadByte()) != -1)
-                                    {
-                                        archivoDesenc.WriteByte((byte)data);
-                                    }
+                                    archivoDesenc.WriteByte((byte)data);
                                 }
                             }
                         }
                     }
                 }
-
-                MessageBox.Show("Archivo desencriptado y guardado en: " + rutaGuardadoDESENC);
-                BorrarArchivoEncriptado(nombre);
-                //crearNuevaFilaDESENC(nombre);
-                ActualizarLista();
             }
-            else
-            {
-                MessageBox.Show("Error al desencriptar");
 
-            }
+            MessageBox.Show("Archivo desencriptado y guardado en: " + rutaGuardadoDESENC);
+            BorrarArchivoEncriptado(nombre);
+            //crearNuevaFilaDESENC(nombre);
+            ActualizarLista();
+
         }
 
         private void MetodoDeEncriptado()
@@ -283,7 +210,9 @@ namespace Practica_CS_encriptar_desencriptar_F1
                 string claveBase64 = Convert.ToBase64String(clave);
                 byte[] claveBase64Bytes = Encoding.UTF8.GetBytes(claveBase64);
 
-                // Encriptar laclave aleatoria con calvepublica
+
+
+                // ***Encriptar laclave aleatoria con calvepublica***
                 RSACryptoServiceProvider rsaEncryptor = new RSACryptoServiceProvider();
                 rsaEncryptor.FromXmlString(clavePublica); // Cargar la clave pública
                 byte[] claveEncriptadaRSA = rsaEncryptor.Encrypt(claveBase64Bytes, false);
@@ -627,3 +556,37 @@ namespace Practica_CS_encriptar_desencriptar_F1
         }
     }
 }
+
+
+
+////****QUITAR CUANDO SE IMPLEMENTE EL SERVIDOR****
+//private string EncriptarClavePrivada(string clavePrivada, string kdatos)
+//{
+//    using (SHA256 sha256 = SHA256.Create())
+//    {
+//        kdatosHash = sha256.ComputeHash(Encoding.UTF8.GetBytes(kdatos));
+
+//        using (Aes aesAlg = Aes.Create())
+//        {
+//            aesAlg.Key = kdatosHash;
+//            ivGlobal = aesAlg.IV; // Guarda el IV para la desencriptación
+
+//            ICryptoTransform encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
+
+//            using (MemoryStream msEncrypt = new MemoryStream())
+//            {
+//                using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
+//                {
+//                    using (StreamWriter swEncrypt = new StreamWriter(csEncrypt))
+//                    {
+//                        swEncrypt.Write(clavePrivada); // Escribe la clave privada como string
+//                    }
+//                }
+
+//                // Devuelve la clave privada encriptada y el IV como un único string Base64
+//                byte[] encryptedData = msEncrypt.ToArray();
+//                return Convert.ToBase64String(ivGlobal.Concat(encryptedData).ToArray());
+//            }
+//        }
+//    }
+//}
