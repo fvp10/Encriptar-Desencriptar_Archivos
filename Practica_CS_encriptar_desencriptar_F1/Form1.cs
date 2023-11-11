@@ -183,6 +183,8 @@ namespace Practica_CS_encriptar_desencriptar_F1
             //Desencripto clave privada
             if (ComprobarKdatos(kdatos, kdatosServidor))
             {
+
+                //DESENCRIPTAR CLAVE PRIVADA
                 string rutaArchivoClavePrivada = Path.Combine(rutaGuardado, "clavePrivadaEncriptada.txt");
                 if (File.Exists(rutaArchivoClavePrivada))
                 {
