@@ -39,6 +39,31 @@ public class UsersController : ControllerBase
         }
     }
 
+    //[HttpGet("{userId}/keys-and-files")]
+    //public IActionResult GetKeysAndFiles(string userId)
+    //{
+    //    // Verificar la autenticación del usuario
+    //    if (!UserIsAuthenticated(userId))
+    //    {
+    //        return Unauthorized();
+    //    }
+
+
+    //    // Obtener los archivos del usuario
+    //    var userFile = _userManager.GetUserFile(userId);
+
+    //    // Devolver las claves y el archivo
+    //    return Ok(new { PublicKey = keys.PublicKey, PrivateKey = keys.PrivateKey, UserFile = userFile });
+    //}
+
+    // Método auxiliar para verificar la autenticación del usuario (a implementar)
+    private bool UserIsAuthenticated(string userId)
+    {
+        // Implementar la lógica de autenticación
+        // ...
+        return true; // Simulando que el usuario está autenticado
+    }
+
     [HttpGet("{username}")]
     public IActionResult GetUser(string username)
     {
