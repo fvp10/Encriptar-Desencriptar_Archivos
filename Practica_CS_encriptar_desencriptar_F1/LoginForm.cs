@@ -1,11 +1,13 @@
 ﻿using System;
-using System.Security.Cryptography;
 using System.Text;
-using System.IO;
-using System.Net;
 using System.Windows.Forms;
-//Librería para la petición HTTP REQUEST
-//using Newtonsoft.Json;
+
+
+using System.Security.Cryptography;
+//Librerías para las petición HTTP REQUEST
+using System.Net.Http;
+using Newtonsoft.Json;
+using System.Threading.Tasks;
 
 
 namespace Practica_CS_encriptar_desencriptar_F1
@@ -16,7 +18,8 @@ namespace Practica_CS_encriptar_desencriptar_F1
     public partial class LoginForm : Form
     {
         //private AuthClient _authClient;
-        private const string ServerUrl = "https://www.ejemplo.com/autenticacion";
+        private static readonly HttpClient _httpClient = new HttpClient();
+        private const string ServerUrl = "https://localhost:7045/Users/authenticate";
         public LoginForm()
         {
             InitializeComponent();
@@ -28,7 +31,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private async void button1_Click(object sender, EventArgs e)
         {
             // Obtén el nombre de usuario y la contraseña
             string username = txtUser.Text;
@@ -54,7 +57,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
             // CUANDO HAYA SERVIDOR: Envía kLogin al servidor para autenticación
             //string response = await _authClient.AuthenticateUser(username, hashedKlogin);
 
-            bool authenticated = AuthenticateUser(username, klogin);
+            bool authenticated = await AuthenticateUserAsync(username, klogin);
 
             if (authenticated)
             {
@@ -69,39 +72,35 @@ namespace Practica_CS_encriptar_desencriptar_F1
             }
         }
 
-        private bool AuthenticateUser(string username, string klogin)
+        private async Task<bool> AuthenticateUserAsync(string usuario, string klogin)
         {
+            // Crear objeto con los datos del usuario
+            var userObject = new
+            {
+                username = usuario,
+                password = klogin
+            };
+
+            // Convertir objeto a JSON
+            string jsonContent = JsonConvert.SerializeObject(userObject);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
             try
             {
-                // Crea una solicitud HTTP POST
-                using (WebClient client = new WebClient())
+                HttpResponseMessage response = await _httpClient.PostAsync(ServerUrl, content);
+
+                if (response.IsSuccessStatusCode)
                 {
-                    // Configura los datos a enviar
-                    byte[] data = Encoding.UTF8.GetBytes($"username={username}&klogin={klogin}");
-
-                    // Configura los encabezados de la solicitud
-                    client.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
-
-                    // Realiza la solicitud al servidor
-                    byte[] responseBytes = client.UploadData(ServerUrl, "POST", data);
-
-                    // Convierte la respuesta en una cadena
-                    string response = Encoding.UTF8.GetString(responseBytes);
-
-                    // Verifica la respuesta del servidor (puedes personalizar esto)
-                    if (response == "Success")
-                    {
-                        return true; // Inicio de sesión exitoso
-                    }
+                    string responseContent = await response.Content.ReadAsStringAsync();
+                    return responseContent == "Success";
                 }
             }
             catch (Exception ex)
             {
-                // Maneja errores de comunicación con el servidor
-                Console.WriteLine("Error de comunicación con el servidor: " + ex.Message);
+                MessageBox.Show("Error de comunicación con el servidor: " + ex.Message);
             }
 
-            return true; // Inicio de sesión fallido
+            return false;
         }
 
 
@@ -135,48 +134,4 @@ namespace Practica_CS_encriptar_desencriptar_F1
     }
 }
 
-
-
-//    public class AuthClient
-//    {
-//        private readonly HttpClient _httpClient;
-//        private readonly string _authEndpoint;
-
-//        public AuthClient(string authEndpoint)
-//        {
-//            _httpClient = new HttpClient();
-//            _authEndpoint = authEndpoint;
-//        }
-
-//        public async Task<string> AuthenticateUser(string username, string kLogin)//APUNTADO EN NOTION
-//        {
-//            var requestData = new
-//            {
-//                Username = username,
-//                KLogin = kLogin
-//            };
-
-//            var jsonContent = JsonConvert.SerializeObject(requestData);
-//            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-//            try
-//            {
-//                HttpResponseMessage response = await _httpClient.PostAsync(_authEndpoint, content);
-
-//                if (response.IsSuccessStatusCode)
-//                {
-//                    string responseContent = await response.Content.ReadAsStringAsync();
-//                    return responseContent;
-//                }
-//                else
-//                {
-//                    return $"Error: {response.StatusCode}";
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                return $"Exception: {ex.Message}";
-//            }
-//        }
-//    }
 
