@@ -9,7 +9,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
 {
     public partial class LoginForm : Form
     {
-        private const string ServerUrl = "https://www.ejemplo.com/autenticacion"; // 
+        private const string ServerUrl = "https://localhost:7045"; // 
         public LoginForm()
         {
             InitializeComponent();
@@ -48,25 +48,25 @@ namespace Practica_CS_encriptar_desencriptar_F1
             // Aquí debes guardar encryptedPublicKey y privateKeyXml en tu servidor de manera segura
 
             // Autenticar al usuario en el servidor
-            /*
+            
             bool authenticated = AuthenticateUser(username, klogin);
 
             if (authenticated)
             {
                 MessageBox.Show($"Inicio de sesión exitoso\nUsername: {username}");
                 this.Hide(); // OCULTAMOS EL LOGIN
-                Form1 main = new Form1();   //CREAMOS UN NUEVO FORM 
+                Form1 main = new Form1(kdatos);   //CREAMOS UN NUEVO FORM 
                 main.Show(); //LO MOSTRAMOS 
             }
             else
             {
                 MessageBox.Show("Inicio de sesión fallido");
-            }*/
+            }
 
             MessageBox.Show($"Inicio de sesión exitoso\nUsername: {username}");
             this.Hide(); // OCULTAMOS EL LOGIN
-            Form1 main = new Form1(kdatos);   //CREAMOS UN NUEVO FORM 
-            main.Show(); //LO MOSTRAMOS 
+            //Form1 main = new Form1(kdatos);   //CREAMOS UN NUEVO FORM 
+            //main.Show(); //LO MOSTRAMOS 
         }
 
         private string GetSHA256Hash(string input)
@@ -112,7 +112,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
         }
         */
 
-        /*
+        
         private bool AuthenticateUser(string username, string klogin)
         {
             try
@@ -147,7 +147,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
             return false; // Inicio de sesión fallido
         }
-        */
+        
 
         private void txtUser_TextChanged(object sender, EventArgs e)
         {
