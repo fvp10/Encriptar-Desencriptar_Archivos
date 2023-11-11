@@ -11,6 +11,8 @@ using Newtonsoft.Json;
 using System.Threading.Tasks;
 using System.IO.Compression;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
+using System.Net;
+using System.Net.Http.Headers;
 
 namespace Practica_CS_encriptar_desencriptar_F1
 {
@@ -51,6 +53,8 @@ namespace Practica_CS_encriptar_desencriptar_F1
                                 "Confirmar Salida",
                                 MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
+                Comprimir();
+                EnviarZipAlServidorAsync(rutaGuardado,_username, ServerUrl);
                 BorrarCarpetaUsuario();
                 this.Hide();
                 LoginForm main2 = new LoginForm();//CREAMOS UN NUEVO FORM 
@@ -60,6 +64,103 @@ namespace Practica_CS_encriptar_desencriptar_F1
             {
                 // Si el usuario decide no salir después de todo, puedes cancelar el cierre del formulario
                 e.Cancel = true;
+            }
+        }
+
+
+        private static async Task<bool> EnviarZipAlServidorAsync(string zipPath, string username, string baseUrl)
+        {
+            // Comprobar que el archivo existe
+            if (!File.Exists(Path.Combine(zipPath, username + ".zip")))
+            {
+                Console.WriteLine("El archivo ZIP no existe en la ruta proporcionada.");
+                return false;
+            }
+
+            // Construir la URL completa usando el nombre de usuario
+            string apiUrl = $"{baseUrl}{username}/refrescarDatos";
+
+            try
+            {
+                using (var client = new HttpClient())
+                using (var content = new MultipartFormDataContent())
+                using (var fileStream = new FileStream(Path.Combine(zipPath, username + ".zip"), FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    var fileContent = new StreamContent(fileStream);
+                    fileContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
+                    {
+                        Name = "file",
+                        FileName = Path.GetFileName(Path.Combine(zipPath, username + ".zip"))
+                    };
+                    content.Add(fileContent);
+
+                    // Enviar la solicitud POST al servidor
+                    HttpResponseMessage response = await client.PostAsync(apiUrl, content);
+
+                    // Verificar si la respuesta es exitosa
+                    if (response.IsSuccessStatusCode)
+                    {
+                        Console.WriteLine("El archivo ZIP se ha enviado correctamente.");
+                        return true;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Error al enviar el archivo: {response.StatusCode}");
+                        return false;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Excepción al enviar el archivo: {ex.Message}");
+                return false;
+            }
+        }
+
+        public static void AddDirectoryToZip(ZipArchive archive, string directoryPath, string entryNameInZip)
+        {
+            // Comprobar si el directorio está vacío
+            if (Directory.GetFiles(directoryPath, "*", SearchOption.TopDirectoryOnly).Length == 0)
+            {
+                // Si el directorio está vacío, agregarlo como una entrada de directorio
+                archive.CreateEntry(entryNameInZip + "/");
+            }
+            else
+            {
+                // Si el directorio contiene archivos, agregar cada archivo al ZIP
+                foreach (string file in Directory.GetFiles(directoryPath, "*", SearchOption.TopDirectoryOnly))
+                {
+                    // Crea el nombre de la entrada en el archivo ZIP
+                    string relativePath = file.Substring(directoryPath.Length + 1);
+                    string entryName = Path.Combine(entryNameInZip, relativePath).Replace('\\', '/');
+
+                    // Agregar archivo al ZIP
+                    archive.CreateEntryFromFile(file, entryName);
+                }
+            }
+        }
+
+
+        private void Comprimir()
+        {
+            string zipPath = Path.Combine(rutaGuardado,_username + ".zip");
+
+            using (var memoryStream = new MemoryStream())
+            {
+                using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+                {
+                    string folder1Path = Path.Combine(rutaGuardado, "CSarchivosENC");
+                    string folder2Path = Path.Combine(rutaGuardado, "CSarchivosDESENC");
+
+                    // Añade la primera carpeta al archivo ZIP
+                    AddDirectoryToZip(archive, folder1Path, "CSarchivosENC");
+
+                    // Añade la segunda carpeta al archivo ZIP
+                    AddDirectoryToZip(archive, folder2Path, "CSarchivosDESENC");
+                }
+
+                // Guarda el archivo ZIP
+                File.WriteAllBytes(zipPath, memoryStream.ToArray());
             }
         }
 
