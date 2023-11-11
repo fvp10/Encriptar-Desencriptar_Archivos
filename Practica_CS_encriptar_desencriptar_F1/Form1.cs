@@ -5,7 +5,10 @@ using System.Windows.Forms;
 using System.Security.Cryptography;
 using System.Linq;
 using System.Text;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
+//Librerías para las petición HTTP REQUEST
+using System.Net.Http;
+using Newtonsoft.Json;
+using System.Threading.Tasks;
 
 namespace Practica_CS_encriptar_desencriptar_F1
 {
@@ -21,28 +24,58 @@ namespace Practica_CS_encriptar_desencriptar_F1
         private string rutaGuardadoDESENC = "";
         private string nombreArc;
         private Random rnd = new Random();
-        ///Quitar cuando se implemente el servidor
+        ///Variables para implementación del servidor
         private string kdatos = "";
-        private RSACryptoServiceProvider rsa;
         private string clavePublica = "";
         private string clavePrivada = "";
-        private string clavePrivadaEn = "";
-        private string kdatosServidor = "";
-        private byte[] kdatosHash;//para pasar a 32bytes
-        private byte[] ivGlobal; // Almacena el IV utilizado en la encriptación
 
-        public Form1(string kdatosRecibidos)
+        private static readonly HttpClient _httpClient = new HttpClient();
+        private const string ServerUrl = "https://localhost:7045/Users/";
+
+
+        public Form1(string username,string kdatosRecibidos)
         {
             InitializeComponent();
+            PedirDatos(username);
             ComprobarCarpeta();
             ComprobarArchivosEncriptados();
 
             kdatos = kdatosRecibidos;
-            kdatosServidor = kdatos; // Asumo que obtienes este valor de algún lugar
 
         }
 
 
+
+        private async Task<bool> PedirDatos(string usuario)
+        {
+
+            try
+            {
+                HttpResponseMessage response = await _httpClient.GetAsync(ServerUrl+usuario+"/get-folder");
+
+                string responseContent = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // Aquí asumimos que el servidor devuelve un objeto JSON con una propiedad 'message'
+                    var responseObject = JsonConvert.DeserializeObject<dynamic>(responseContent);
+                    MessageBox.Show("Datos recibidos del servidor");
+                    return responseObject?.message == "Datos recibidos.";
+
+                }
+                else
+                {
+                    // Manejo de diferentes respuestas no exitosas
+                    MessageBox.Show($"Error al recibir los datos");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error de comunicación con el servidor: " + ex.Message);
+            }
+
+            return false;
+        }
 
         private void desencriptar__Click(object sender, EventArgs e)
         {
@@ -115,13 +148,11 @@ namespace Practica_CS_encriptar_desencriptar_F1
             //Desencripto clave privada
 
             //DESENCRIPTAR CLAVE PRIVADA
-            string rutaArchivoClavePrivada = Path.Combine(rutaGuardado, "clavePrivadaEncriptada.txt");
-            if (File.Exists(rutaArchivoClavePrivada))
-            {
-                string clavePrivadaEncriptada = File.ReadAllText(rutaArchivoClavePrivada);
-                clavePrivada = DesencriptarClavePrivada(clavePrivadaEncriptada, kdatos);
-            }
+            //QUITAR LA RUTA 
 
+
+            clavePrivada = DesencriptarClavePrivada(clavePrivada, kdatos);
+            
 
             //***DESENCRIPTAR CLAVE AES CON CLAVE PRIVADA***
             RSACryptoServiceProvider rsaDecryptor = new RSACryptoServiceProvider();

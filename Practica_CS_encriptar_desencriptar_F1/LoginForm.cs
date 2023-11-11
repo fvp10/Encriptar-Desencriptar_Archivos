@@ -63,7 +63,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
             {
                 MessageBox.Show($"Inicio de sesión exitoso\nUsername: {username}\nkdatos: {kdatos}\nklogin: {klogin}");
                 this.Hide(); // OCULTAMOS EL LOGIN
-                Form1 main = new Form1(kdatos);   //CREAMOS UN NUEVO FORM 
+                Form1 main = new Form1(username,kdatos);   //CREAMOS UN NUEVO FORM 
                 main.Show(); //LO MOSTRAMOS 
             }
             else
