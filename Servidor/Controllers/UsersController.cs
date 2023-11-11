@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.IO.Compression;
+using System.IO;
 
 [ApiController]
 [Route("[controller]")]
@@ -77,9 +79,46 @@ public class UsersController : ControllerBase
             return NotFound(new { message = "Usuario no encontrado." });
         }
     }
+
+    [HttpGet("{username}/get-folder")]
+    public IActionResult GetFolder(string username)
+    {
+        var userFolderPath = Path.Combine(_userManager.GetUsersFolderPath(), username);
+
+        if (!Directory.Exists(userFolderPath))
+        {
+            return NotFound(new { message = "Usuario no encontrado." });
+        }
+
+        var carpetaComprimidaPath = Path.Combine(_userManager.GetUsersFolderPath(), $"{username}_comprimida.zip");
+
+        try
+        {
+            _userManager.ComprimirCarpeta(userFolderPath, carpetaComprimidaPath);
+
+            // Envía el archivo ZIP al cliente
+            var fileBytes = System.IO.File.ReadAllBytes(carpetaComprimidaPath);
+            return File(fileBytes, "application/zip", $"{username}_comprimida.zip");
+        }
+        catch (Exception ex)
+        {
+            // Manejar la excepción (registros, devolución de error, etc.)
+            return BadRequest(new { message = $"Error al comprimir la carpeta: {ex.Message}" });
+        }
+        finally
+        {
+            // Elimina el archivo ZIP solo si no hay errores
+            if (System.IO.File.Exists(carpetaComprimidaPath))
+            {
+                System.IO.File.Delete(carpetaComprimidaPath);
+            }
+        }
+    }
+
+
+
+
 }
-
-
 
 public class RegisterModel
 {

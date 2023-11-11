@@ -3,6 +3,7 @@ using System.IO;
 using System.Text.Json;
 using System.Security.Cryptography;
 using System.Text;
+using System.IO.Compression;
 
 public class UsuarioModel
 {
@@ -176,10 +177,6 @@ public class UsuarioModel
 
             return BCrypt.Net.BCrypt.Verify(kLoginInput, kLogin);
 
-
-
-
-
         }
         // Verificar hash de la contraseña
 
@@ -245,5 +242,16 @@ public class UsuarioModel
                 EncryptedPrivateKey = privateKeyEncrypted
             };
         }
+    }
+
+    //COMPRESION DE LA CARPETA DEL USUARIO PARA QUE LA PODAMOS MANDAR
+    public void ComprimirCarpeta(string carpetaOrigen, string archivoDestino)
+    {
+        ZipFile.CreateFromDirectory(carpetaOrigen, archivoDestino);
+    }
+
+    public string GetUsersFolderPath()
+    {
+        return _usersFolderPath;
     }
 }
