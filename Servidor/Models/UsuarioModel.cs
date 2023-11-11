@@ -53,9 +53,9 @@ public class UsuarioModel
         // Hash de la contraseña
         var hashPassword = GetSHA256Hash(password);
 
-        // Dividir el hash en dos
-        var kLogin = hashPassword.Substring(0, hashPassword.Length / 2);
-        var kDatos = hashPassword.Substring(hashPassword.Length / 2);
+        // Dividir el hash en               
+        var kDatos = hashPassword.Substring(0, hashPassword.Length / 2);
+        var kLogin = hashPassword.Substring(hashPassword.Length / 2);
 
         kLogin = BCrypt.Net.BCrypt.HashPassword(kLogin);
 
@@ -169,13 +169,9 @@ public class UsuarioModel
             var privateKeyEncrypted = File.Exists(privateKeyEncryptedPath) ? File.ReadAllText(privateKeyEncryptedPath) : null;
 
 
-            //Simulacion de entrada de klogin
-
-            var hashPasswordinput = GetSHA256Hash(password);
-            var kLoginInput = hashPasswordinput.Substring(0, hashPasswordinput.Length / 2);
 
 
-            return BCrypt.Net.BCrypt.Verify(kLoginInput, kLogin);
+            return BCrypt.Net.BCrypt.Verify(password, kLogin);
 
         }
         // Verificar hash de la contraseña
