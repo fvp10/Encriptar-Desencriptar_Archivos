@@ -136,6 +136,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
             }
         }
 
+        //clavePrivadaEncriptada la obtengo del servidor
         private string DesencriptarClavePrivada(string clavePrivadaEncriptada, string kdatos)
         {
             byte[] fullCipher = Convert.FromBase64String(clavePrivadaEncriptada);
@@ -545,6 +546,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
         }
 
+        //Comprueba archivos de las carpetas
         private void ComprobarArchivosEncriptados()
         {
             if (!Directory.Exists(rutaGuardado) || !Directory.Exists(rutaGuardadoDESENC))
