@@ -40,32 +40,6 @@ public class UsersController : ControllerBase
             return Unauthorized(new { message = "Usuario o contraseña incorrectos." });
         }
     }
-
-    //[HttpGet("{userId}/keys-and-files")]
-    //public IActionResult GetKeysAndFiles(string userId)
-    //{
-    //    // Verificar la autenticación del usuario
-    //    if (!UserIsAuthenticated(userId))
-    //    {
-    //        return Unauthorized();
-    //    }
-
-
-    //    // Obtener los archivos del usuario
-    //    var userFile = _userManager.GetUserFile(userId);
-
-    //    // Devolver las claves y el archivo
-    //    return Ok(new { PublicKey = keys.PublicKey, PrivateKey = keys.PrivateKey, UserFile = userFile });
-    //}
-
-    // Método auxiliar para verificar la autenticación del usuario (a implementar)
-    private bool UserIsAuthenticated(string userId)
-    {
-        // Implementar la lógica de autenticación
-        // ...
-        return true; // Simulando que el usuario está autenticado
-    }
-
     [HttpGet("{username}")]
     public IActionResult GetUser(string username)
     {
@@ -115,9 +89,50 @@ public class UsersController : ControllerBase
         }
     }
 
+    [HttpPost("{username}/refrescarDatos")]
+    public IActionResult UploadZip(string username, IFormFile file)
+    {
 
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest("Archivo no proporcionado o vacío.");
+        }
 
+        var userFolderPath = Path.Combine(_userManager.GetUsersFolderPath(), username);
 
+        if (!Directory.Exists(userFolderPath))
+        {
+            return NotFound("Usuario no encontrado.");
+        }
+
+        var tempZipPath = Path.GetTempFileName();
+
+        try
+        {
+            // Guardar el archivo ZIP temporalmente
+            using (var stream = new FileStream(tempZipPath, FileMode.Create))
+            {
+                file.CopyTo(stream);
+            }
+
+            // Descomprimir el archivo ZIP
+            ZipFile.ExtractToDirectory(tempZipPath, userFolderPath, true);
+
+            return Ok("Archivo cargado y descomprimido exitosamente.");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"Error al procesar el archivo: {ex.Message}");
+        }
+        finally
+        {
+            // Eliminar el archivo ZIP temporal
+            if (System.IO.File.Exists(tempZipPath))
+            {
+                System.IO.File.Delete(tempZipPath);
+            }
+        }
+    }
 }
 
 public class RegisterModel
