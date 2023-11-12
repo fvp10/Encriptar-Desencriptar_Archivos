@@ -101,14 +101,17 @@ namespace Practica_CS_encriptar_desencriptar_F1
                     if (response.IsSuccessStatusCode)
                     {
                         Console.WriteLine("El archivo ZIP se ha enviado correctamente.");
-                        return true;
+
                     }
                     else
                     {
                         Console.WriteLine($"Error al enviar el archivo: {response.StatusCode}");
                         return false;
                     }
+
                 }
+                File.Delete(Path.Combine(zipPath, username + ".zip"));
+                return true;
             }
             catch (Exception ex)
             {
@@ -170,9 +173,9 @@ namespace Practica_CS_encriptar_desencriptar_F1
             string carpetaUsuario = rutaGuardado;
             try
             {
-                if (Directory.Exists(carpetaUsuario))
+                if (Directory.Exists(rutaGuardado))
                 {
-                    Directory.Delete(carpetaUsuario, true);
+                    Directory.Delete(rutaGuardado, true);
                 }
             }
             catch (Exception ex)
