@@ -53,9 +53,9 @@ public class UsuarioModel
         // Hash de la contraseña
         var hashPassword = GetSHA256Hash(password);
 
-        // Dividir el hash en dos
-        var kLogin = hashPassword.Substring(0, hashPassword.Length / 2);
-        var kDatos = hashPassword.Substring(hashPassword.Length / 2);
+        // Dividir el hash en               
+        var kDatos = hashPassword.Substring(0, hashPassword.Length / 2);
+        var kLogin = hashPassword.Substring(hashPassword.Length / 2);
 
         kLogin = BCrypt.Net.BCrypt.HashPassword(kLogin);
 
@@ -77,7 +77,7 @@ public class UsuarioModel
                 // Obtener la clave pública y privada
                 var publicKey = rsa.ToXmlString(false); // Solo la clave pública
                 var privateKey = rsa.ToXmlString(true); // La clave privada 
-                
+
 
                 // Cifrar la clave privada con KDatos
                 var encryptedPrivateKey = EncryptWithPassword(privateKey, kDatos);
@@ -112,7 +112,7 @@ public class UsuarioModel
         {
             // La carpeta "CSarchivosENC" no existe, créala
             Directory.CreateDirectory(carpetaPractica2);
-        }  
+        }
     }
 
     private string EncryptWithPassword(string clearText, string password)
@@ -162,54 +162,13 @@ public class UsuarioModel
             var nombreUsuario = root.GetProperty("NombreUsuario").GetString();
             var kLogin = root.GetProperty("KLogin").GetString();
 
-            var publicKeyPath = Path.Combine(userPath, "publicKey.xml");
-            var publicKey = File.Exists(publicKeyPath) ? File.ReadAllText(publicKeyPath) : null;
-
-            var privateKeyEncryptedPath = Path.Combine(userPath, "privateKeyEncrypted.xml");
-            var privateKeyEncrypted = File.Exists(privateKeyEncryptedPath) ? File.ReadAllText(privateKeyEncryptedPath) : null;
-
-
-            //Simulacion de entrada de klogin
-
-            var hashPasswordinput = GetSHA256Hash(password);
-            var kLoginInput = hashPasswordinput.Substring(0, hashPasswordinput.Length / 2);
-
-
-            return BCrypt.Net.BCrypt.Verify(kLoginInput, kLogin);
+            return BCrypt.Net.BCrypt.Verify(password, kLogin);
 
         }
         // Verificar hash de la contraseña
 
 
     }
-
-    //Este metodo para ellos cuando se la pasen los datos para desencriptar la clave privada
-    //private string DecryptWithPassword(string cipherText, string password)
-    //{
-    //    byte[] cipherBytes = Convert.FromBase64String(cipherText);
-
-    //    // Usar la contraseña directamente como antes; aunque esto es inseguro y solo para demostración.
-    //    byte[] key = new byte[32]; // AES requiere una clave de 256 bits para AES-256
-    //    byte[] iv = new byte[16]; // El IV siempre necesita 16 bytes para AES
-    //    Array.Copy(Encoding.UTF8.GetBytes(password.PadRight(key.Length)), key, key.Length);
-    //    Array.Copy(Encoding.UTF8.GetBytes(password.PadRight(iv.Length)), iv, iv.Length);
-
-    //    using (Aes aes = Aes.Create())
-    //    {
-    //        aes.Key = key;
-    //        aes.IV = iv;
-    //        aes.Mode = CipherMode.CBC;
-
-    //        using (var ms = new MemoryStream())
-    //        {
-    //            using (var cs = new CryptoStream(ms, aes.CreateDecryptor(), CryptoStreamMode.Write))
-    //            {
-    //                cs.Write(cipherBytes, 0, cipherBytes.Length);
-    //            }
-    //            return Encoding.Unicode.GetString(ms.ToArray());
-    //        }
-    //    }
-    //}
 
     public object GetUserDetails(string username)
     {

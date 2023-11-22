@@ -4,6 +4,15 @@ using System.IO;
 using System.Windows.Forms;
 using System.Security.Cryptography;
 using System.Linq;
+using System.Text;
+//Librerías para las petición HTTP REQUEST
+using System.Net.Http;
+using Newtonsoft.Json;
+using System.Threading.Tasks;
+using System.IO.Compression;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
+using System.Net;
+using System.Net.Http.Headers;
 
 namespace Practica_CS_encriptar_desencriptar_F1
 {
@@ -13,19 +22,257 @@ namespace Practica_CS_encriptar_desencriptar_F1
         private int posicionVertical = 10; // Inicializa la posición vertical
         private int posicionVerticalDESENC = 10;
         private Dictionary<System.Windows.Forms.Button, Panel> botonesYFilas = new Dictionary<System.Windows.Forms.Button, Panel>();
-        //private string rutaGuardado = Path.Combine(Environment.CurrentDirectory, "CSarchivosENC");
-        //private string rutaGuardadoDESENC = Path.Combine(Environment.CurrentDirectory, "CSarchivosDESENC");
-        private string rutaGuardado = "";
-        private string rutaGuardadoDESENC = "";
+        private string rutaGuardado = Environment.CurrentDirectory;
         private string nombreArc;
         private Random rnd = new Random();
+        ///Variables para implementación del servidor
+        private string kdatos = "";
+        private string clavePublica = "";
+        private string clavePrivada = "";
+        private string _username;
+
+        private static readonly HttpClient _httpClient = new HttpClient();
+        private const string ServerUrl = "https://localhost:7045/Users/";
 
 
-        public Form1()
+        public Form1(string username,string kdatosRecibidos)
         {
             InitializeComponent();
-            ComprobarCarpeta();
-            ComprobarArchivosEncriptados();
+            PedirYGuardarDatos(username);
+
+            kdatos = kdatosRecibidos;
+            this._username = username;
+            this.FormClosing += new FormClosingEventHandler(Form1_FormClosing);
+
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            // Puedes preguntar al usuario si realmente desea cerrar la aplicación
+            if (MessageBox.Show("¿Estás seguro de que quieres salir y borrar los datos temporales?",
+                                "Confirmar Salida",
+                                MessageBoxButtons.YesNo) == DialogResult.Yes)
+            {
+                Comprimir();
+                EnviarZipAlServidorAsync(rutaGuardado,_username, ServerUrl);
+                BorrarCarpetaUsuario();
+                this.Hide();
+                LoginForm main2 = new LoginForm();//CREAMOS UN NUEVO FORM 
+                main2.Show(); //LO MOSTRAMOS 
+            }
+            else
+            {
+                // Si el usuario decide no salir después de todo, puedes cancelar el cierre del formulario
+                e.Cancel = true;
+            }
+        }
+
+
+        private static async Task<bool> EnviarZipAlServidorAsync(string zipPath, string username, string baseUrl)
+        {
+            // Comprobar que el archivo existe
+            if (!File.Exists(Path.Combine(zipPath, username + ".zip")))
+            {
+                Console.WriteLine("El archivo ZIP no existe en la ruta proporcionada.");
+                return false;
+            }
+
+            // Construir la URL completa usando el nombre de usuario
+            string apiUrl = $"{baseUrl}{username}/refrescarDatos";
+
+            try
+            {
+                using (var client = new HttpClient())
+                using (var content = new MultipartFormDataContent())
+                using (var fileStream = new FileStream(Path.Combine(zipPath, username + ".zip"), FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    var fileContent = new StreamContent(fileStream);
+                    fileContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
+                    {
+                        Name = "file",
+                        FileName = Path.GetFileName(Path.Combine(zipPath, username + ".zip"))
+                    };
+                    content.Add(fileContent);
+
+                    // Enviar la solicitud POST al servidor
+                    HttpResponseMessage response = await client.PostAsync(apiUrl, content);
+
+                    // Verificar si la respuesta es exitosa
+                    if (response.IsSuccessStatusCode)
+                    {
+                        Console.WriteLine("El archivo ZIP se ha enviado correctamente.");
+
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Error al enviar el archivo: {response.StatusCode}");
+                        return false;
+                    }
+
+                }
+                File.Delete(Path.Combine(zipPath, username + ".zip"));
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Excepción al enviar el archivo: {ex.Message}");
+                return false;
+            }
+        }
+
+        public static void AddDirectoryToZip(ZipArchive archive, string directoryPath, string entryNameInZip)
+        {
+            // Comprobar si el directorio está vacío
+            if (Directory.GetFiles(directoryPath, "*", SearchOption.TopDirectoryOnly).Length == 0)
+            {
+                // Si el directorio está vacío, agregarlo como una entrada de directorio
+                archive.CreateEntry(entryNameInZip + "/");
+            }
+            else
+            {
+                // Si el directorio contiene archivos, agregar cada archivo al ZIP
+                foreach (string file in Directory.GetFiles(directoryPath, "*", SearchOption.TopDirectoryOnly))
+                {
+                    // Crea el nombre de la entrada en el archivo ZIP
+                    string relativePath = file.Substring(directoryPath.Length + 1);
+                    string entryName = Path.Combine(entryNameInZip, relativePath).Replace('\\', '/');
+
+                    // Agregar archivo al ZIP
+                    archive.CreateEntryFromFile(file, entryName);
+                }
+            }
+        }
+
+
+        private void Comprimir()
+        {
+            string zipPath = Path.Combine(rutaGuardado,_username + ".zip");
+
+            using (var memoryStream = new MemoryStream())
+            {
+                using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+                {
+                    string folder1Path = Path.Combine(rutaGuardado, "CSarchivosENC");
+                    string folder2Path = Path.Combine(rutaGuardado, "CSarchivosDESENC");
+
+                    // Añade la primera carpeta al archivo ZIP
+                    AddDirectoryToZip(archive, folder1Path, "CSarchivosENC");
+
+                    // Añade la segunda carpeta al archivo ZIP
+                    AddDirectoryToZip(archive, folder2Path, "CSarchivosDESENC");
+                }
+
+                // Guarda el archivo ZIP
+                File.WriteAllBytes(zipPath, memoryStream.ToArray());
+            }
+        }
+
+        // La función para borrar la carpeta del usuario sigue siendo la misma
+        private void BorrarCarpetaUsuario()
+        {
+            string carpetaUsuario = rutaGuardado;
+            try
+            {
+                if (Directory.Exists(rutaGuardado))
+                {
+                    Directory.Delete(rutaGuardado, true);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Aquí puedes decidir si quieres mostrar un error o simplemente registrar el problema
+                // MessageBox.Show("No se pudo borrar la carpeta del usuario: " + ex.Message);
+            }
+        }
+
+
+        private async Task<bool> PedirYGuardarDatos(string usuario)
+        {
+            string zipPath = Path.Combine(rutaGuardado, usuario + "_datos.zip");
+
+            try
+            {
+                HttpResponseMessage response = await _httpClient.GetAsync(ServerUrl + usuario + "/get-folder");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // Leer los bytes del archivo ZIP de la respuesta
+                    var fileBytes = await response.Content.ReadAsByteArrayAsync();
+
+                    // Guardar los bytes del archivo en el sistema de archivos
+                    File.WriteAllBytes(zipPath, fileBytes);
+
+                    MessageBox.Show("Datos recibidos y archivo ZIP guardado en: " + rutaGuardado);
+
+                    // Llamar a la función de descompresión y organización aquí
+                    bool descomprimirYOrganizar = await DescomprimirYOrganizarArchivos(zipPath, rutaGuardado,usuario);
+                    return descomprimirYOrganizar;
+                }
+                else
+                {
+                    // Manejar las respuestas no exitosas aquí
+                    MessageBox.Show($"Error al recibir los datos. Código de estado: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error de comunicación con el servidor: " + ex.Message);
+            }
+
+            return false;
+        }
+
+        private async Task<bool> DescomprimirYOrganizarArchivos(string zipPath, string extractPath,string nusuario)
+        {
+            try
+            {
+                var rutacarpetanueva = Path.Combine(extractPath, nusuario);
+
+                // Asegúrate de que la ruta de extracción existe
+                if (!Directory.Exists(extractPath))
+                {
+                    Directory.CreateDirectory(extractPath);
+                }
+
+                if (!Directory.Exists(rutacarpetanueva))
+                {
+                    Directory.CreateDirectory(rutacarpetanueva);
+                }
+
+                rutaGuardado = rutacarpetanueva;
+
+                // Descomprimir el 
+
+                ZipFile.ExtractToDirectory(zipPath, rutacarpetanueva);
+                File.Delete(zipPath);
+                
+
+                // Mover los archivos a sus ubicaciones correspondientes
+                // Ejemplo de nombres de archivo, ajusta estos según tus necesidades reales
+                string[] nombresArchivos = { "publicKey.xml", "privateKeyEncrypted.xml"};
+                foreach (var nombreArchivo in nombresArchivos) 
+                {
+                    string archivoOrigen = Path.Combine(rutacarpetanueva, nombreArchivo);
+                    // Determina la carpeta de destino basada en el nombre del archivo
+                    if (nombreArchivo == "publicKey.xml")
+                    {
+                        clavePublica = File.ReadAllText(archivoOrigen);
+                    }
+                    else if (nombreArchivo == "privateKeyEncrypted.xml")
+                    {
+                        clavePrivada = File.ReadAllText(archivoOrigen);
+                    }
+                }
+
+                MessageBox.Show("Archivo ZIP descomprimido y archivos organizados correctamente.");
+                ComprobarArchivosEncriptados();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al descomprimir y organizar los archivos: " + ex.Message);
+                return false;
+            }
         }
 
         private void desencriptar__Click(object sender, EventArgs e)
@@ -39,20 +286,106 @@ namespace Practica_CS_encriptar_desencriptar_F1
             MetodoDeEncriptado();
         }
 
+
+
+
+
+        //clavePrivadaEncriptada la obtengo del servidor
+        //private string DesencriptarClavePrivada(string clavePrivadaEncriptada, string kdatos)
+        //{
+        //    //Este es el encabezado del método. Toma dos parámetros: clavePrivadaEncriptada,
+        //    //que es la clave privada RSA cifrada en formato de cadena Base64, y kdatos,
+        //    //que se usa para generar la clave de desencriptación AES.
+        //    byte[] TodoCifrado = Convert.FromBase64String(clavePrivadaEncriptada);
+
+        //    using (SHA256 sha256 = SHA256.Create())
+        //    {
+
+        //        byte[] key = sha256.ComputeHash(Encoding.UTF8.GetBytes(kdatos));//calve debe tener un tamaño adecuado y seguro para el cifrado AES
+        //        byte[] iv = TodoCifrado.Take(16).ToArray(); // Extrae el IV (primeros 16 bytes)
+        //        byte[] textocifrado = TodoCifrado.Skip(16).ToArray(); // Extrae el texto cifrado
+
+        //        using (Aes aesAlg = Aes.Create())
+        //        {
+        //            aesAlg.Key = key;
+        //            aesAlg.IV = iv;
+
+        //            ICryptoTransform decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
+
+        //            using (MemoryStream msDecrypt = new MemoryStream(textocifrado))
+        //            {
+        //                using (CryptoStream csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
+        //                {
+        //                    using (StreamReader srDecrypt = new StreamReader(csDecrypt))
+        //                    {
+        //                        return srDecrypt.ReadToEnd();
+        //                    }
+        //                }
+        //            }
+        //        }
+        //    }
+        //}
+
+        private string DesencriptarClavePrivada(string cipherText, string password)
+        {
+            byte[] cipherBytes = Convert.FromBase64String(cipherText);
+
+            // Usar la contraseña directamente como antes; aunque esto es inseguro y solo para demostración.
+            byte[] key = new byte[32]; // AES requiere una clave de 256 bits para AES-256
+            byte[] iv = new byte[16]; // El IV siempre necesita 16 bytes para AES
+            Array.Copy(Encoding.UTF8.GetBytes(password.PadRight(key.Length)), key, key.Length);
+            Array.Copy(Encoding.UTF8.GetBytes(password.PadRight(iv.Length)), iv, iv.Length);
+
+            using (Aes aes = Aes.Create())
+            {
+                aes.Key = key;
+                aes.IV = iv;
+                aes.Mode = CipherMode.CBC;
+
+                using (var ms = new MemoryStream())
+                {
+                    using (var cs = new CryptoStream(ms, aes.CreateDecryptor(), CryptoStreamMode.Write))
+                    {
+                        cs.Write(cipherBytes, 0, cipherBytes.Length);
+                    }
+                    return Encoding.Unicode.GetString(ms.ToArray());
+                }
+            }
+        }
+
+
         private void Desencriptado(String nombre)
         {
 
-            string RutaArchivoClave = Path.Combine(rutaGuardado, nombre + "_clave.txt");
-            string RutArchivoIV = Path.Combine(rutaGuardado, nombre + "_IV.txt");
-            string RutaArchivoENC = Path.Combine(rutaGuardado, nombre + ".enc");
+            string RutaArchivoClave = Path.Combine(rutaGuardado , "CSarchivosENC", nombre + "_clave.txt");
+            string RutArchivoIV = Path.Combine(rutaGuardado , "CSarchivosENC", nombre + "_IV.txt");
+            string RutaArchivoENC = Path.Combine(rutaGuardado , "CSarchivosENC", nombre + ".enc");
 
-            byte[] key = Convert.FromBase64String(File.ReadAllText(RutaArchivoClave));
+            byte[] claveEncriptadaRSA = File.ReadAllBytes(RutaArchivoClave); // Corregido para leer la clave RSA encriptada correcta
+
+
+            //DESENCRIPTADO RSA
+            //Desencripto clave privada
+
+            //DESENCRIPTAR CLAVE PRIVADA
+            //QUITAR LA RUTA 
+
+
+            clavePrivada = DesencriptarClavePrivada(clavePrivada, kdatos);
+            
+
+            //***DESENCRIPTAR CLAVE AES CON CLAVE PRIVADA***
+            RSACryptoServiceProvider rsaDecryptor = new RSACryptoServiceProvider();
+            rsaDecryptor.FromXmlString(clavePrivada); // Cargar la clave privada
+            byte[] claveDesencriptadaRSA = rsaDecryptor.Decrypt(claveEncriptadaRSA, false);
+            byte[] claveAES = Convert.FromBase64String(Encoding.UTF8.GetString(claveDesencriptadaRSA));
+
             byte[] iv = File.ReadAllBytes(RutArchivoIV);
-
+            //byte[] key = Convert.FromBase64String(File.ReadAllText(RutaArchivoClave));
 
             using (Aes objetoAes = Aes.Create())
             {
-                objetoAes.Key = key;
+                objetoAes.Key = claveAES;
                 objetoAes.IV = iv;
                 objetoAes.Mode = CipherMode.CBC; // Modo CBC
 
@@ -60,7 +393,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
                 using (ICryptoTransform descifrado = objetoAes.CreateDecryptor())
                 {
                     // Ruta donde se guardará el archivo desencriptado
-                    string archivoDesencriptado = Path.Combine(rutaGuardadoDESENC, nombre);
+                    string archivoDesencriptado = Path.Combine(rutaGuardado ,"CSarchivosDESENC", nombre);
 
                     // Crear un flujo de escritura para el archivo desencriptado
                     using (FileStream archivoDesenc = new FileStream(archivoDesencriptado, FileMode.Create))
@@ -86,10 +419,11 @@ namespace Practica_CS_encriptar_desencriptar_F1
                 }
             }
 
-            MessageBox.Show("Archivo desencriptado y guardado en: " + rutaGuardadoDESENC);
+            MessageBox.Show("Archivo desencriptado y guardado en: " + rutaGuardado + "CSarchivosDESENC");
             BorrarArchivoEncriptado(nombre);
             //crearNuevaFilaDESENC(nombre);
             ActualizarLista();
+
         }
 
         private void MetodoDeEncriptado()
@@ -112,7 +446,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
             byte[] iv = GenerarIVAleatorio();
             nombreArc = Path.GetFileName(archivoOriginal);
 
-           
+
 
             comprobarRepetidos(nombreArc);
 
@@ -123,38 +457,37 @@ namespace Practica_CS_encriptar_desencriptar_F1
                 objetoAes.IV = iv;
                 objetoAes.Mode = CipherMode.CBC; // Modo CBC
 
+                // Convertir la clave AES a Base 64
                 string claveBase64 = Convert.ToBase64String(clave);
+                byte[] claveBase64Bytes = Encoding.UTF8.GetBytes(claveBase64);
 
-                // Escribe la clave Base64 en otro archivo a parte
-                string archivoClave = Path.Combine(rutaGuardado, nombreArc + "_clave.txt");
-                File.WriteAllText(archivoClave, claveBase64);
 
-                //Escribe elIV en otro archivo a parte
-                //-----------------PREGUNTAR SI EL IV HAY QUE PASARLO A BASE64---------------------------
-                string archivoIV = Path.Combine(rutaGuardado, nombreArc + "_IV.txt");
+
+                RSACryptoServiceProvider rsaEncryptor = new RSACryptoServiceProvider();
+                rsaEncryptor.FromXmlString(clavePublica); // Cargar la clave pública
+                byte[] claveEncriptadaRSA = rsaEncryptor.Encrypt(claveBase64Bytes, false);
+
+                // Guardar la clave encriptada RSA como bytes
+                string archivoClave = Path.Combine(rutaGuardado , "CSarchivosENC", nombreArc + "_clave.txt");
+                File.WriteAllBytes(archivoClave, claveEncriptadaRSA);
+
+
+
+
+                string archivoIV = Path.Combine(rutaGuardado , "CSarchivosENC", nombreArc + "_IV.txt");
                 File.WriteAllBytes(archivoIV, iv);
 
-                // Crear un flujo de cifrado
-                //el obtejo de ICryptoTransform es la transformación de archivo desencriptado a encriptado y viceversa
-                //se inicializa con el resultado del método "CreateEncryptor()" que es la interfaz que define la funcionalidad básica para transformar datos(cifrar/descifrar).
+
                 using (ICryptoTransform cifrado = objetoAes.CreateEncryptor())
                 {
                     // Ruta donde se guardará el archivo encriptado
-                    string archivoEncriptado = Path.Combine(rutaGuardado, nombreArc + ".enc");
+                    string archivoEncriptado = Path.Combine(rutaGuardado , "CSarchivosENC", nombreArc + ".enc");
 
-                    // Crear un flujo de escritura para el archivo encriptado
-                    //archivoenc representa el archivo encriptado en el que estamos escribiendo datos
-                    //FileMode.Create es un modo para abrir archivos, el cual crea un nuevo archivo si no existe o lo sobrescribe
                     using (FileStream archivoenc = new FileStream(archivoEncriptado, FileMode.Create))
                     {
-                        // Escribir el IV en el archivo encriptado (para uso posterior durante la desencriptación)
-                        //archivoenc representa el archivo encriptado en el que estamos escribiendo datos
-                        //el 0 indica desde donde comienza a leer los bites
+
                         archivoenc.Write(iv, 0, iv.Length);
 
-                        // Crear un flujo de lectura para el archivo original con FileMode.Open
-                        //Este flujo de lectura se utilizará para leer los datos del archivo original
-                        //y luego cifrarlos antes de escribirlos en el archivo encriptado.
                         using (FileStream fsIn = new FileStream(archivoOriginal, FileMode.Open))
                         {
                             //Crear un flujo de cifrado para cifrar los datos
@@ -173,7 +506,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
             }
 
             // Notificar al usuario que la encriptación se ha completado
-            MessageBox.Show("Archivo encriptado y guardado en: " + rutaGuardado);
+            MessageBox.Show("Archivo encriptado y guardado en: " + rutaGuardado + "CSarchivosENC");
 
             // Crear una nueva fila en la interfaz gráfica
             CrearNuevaFila();
@@ -224,7 +557,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
         {
             // CREACION DE LAS FILAS
             Label txtCifrado = new Label();
-            
+
             txtCifrado.Text = nombreArc; //ESTO ES TEMPORAL YA QUE HABRÁ QUE PONER EL ARCHIVO CIFRADO
             txtCifrado.Width = 150;
             txtCifrado.Height = 30;
@@ -261,8 +594,8 @@ namespace Practica_CS_encriptar_desencriptar_F1
             posicionVertical += nuevaFila.Height + 5; // Puedes ajustar el espacio entre filas
 
             // Asigna un manejador de eventos a los botones de la fila
-            btnDesencriptar.Click +=  (sender, e ) => Desencriptado(txtCifrado.Text);
-            btnBorrar.Click += (sender, e) => EliminarFila(nuevaFila, txtCifrado.Text,1);//he quitado + ".enc"
+            btnDesencriptar.Click += (sender, e) => Desencriptado(txtCifrado.Text);
+            btnBorrar.Click += (sender, e) => EliminarFila(nuevaFila, txtCifrado.Text, 1);//he quitado + ".enc"
 
             // Agrega la nueva fila al panel de contenedor
             panelContenedor.Controls.Add(nuevaFila);
@@ -270,9 +603,9 @@ namespace Practica_CS_encriptar_desencriptar_F1
             txt1.Text = "";
         }
 
-        private void EliminarFila(Panel fila,string nombreArchivo,int modo)
+        private void EliminarFila(Panel fila, string nombreArchivo, int modo)
         {
-            if(modo == 1)
+            if (modo == 1)
             {
                 BorrarArchivoEncriptado(nombreArchivo);
                 // Elimina la fila del panel de contenedor y del diccionario
@@ -281,12 +614,12 @@ namespace Practica_CS_encriptar_desencriptar_F1
             }
             else
             {
-                string rutaArchivoDESENC = Path.Combine(rutaGuardadoDESENC, nombreArchivo);
+                string rutaArchivoDESENC = Path.Combine(rutaGuardado , "CSarchivosDESENC", nombreArchivo);
                 File.Delete(rutaArchivoDESENC);
                 panelDESENC.Controls.Remove(fila);
                 panelDESENC.Controls.Clear();
             }
-           
+
             // Busca y elimina la entrada correspondiente en el diccionario
             foreach (var kvp in botonesYFilas)
             {
@@ -314,10 +647,10 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
         private void BorrarArchivoEncriptado(string nombreArchivo)
         {
-            
-            string rutaArchivoEncriptado = Path.Combine(rutaGuardado, nombreArchivo+".enc");
-            string rutaClave = Path.Combine(rutaGuardado, nombreArchivo+"_clave.txt");
-            string rutaIV = Path.Combine(rutaGuardado, nombreArchivo + "_IV.txt");
+
+            string rutaArchivoEncriptado = Path.Combine(rutaGuardado, "CSarchivosENC", nombreArchivo + ".enc");
+            string rutaClave = Path.Combine(rutaGuardado,"CSarchivosENC", nombreArchivo + "_clave.txt");
+            string rutaIV = Path.Combine(rutaGuardado,"CSarchivosENC", nombreArchivo + "_IV.txt");
             // Verifica si existen los archivos
             if (File.Exists(rutaArchivoEncriptado) && File.Exists(rutaClave) && File.Exists(rutaIV))
             {
@@ -334,8 +667,8 @@ namespace Practica_CS_encriptar_desencriptar_F1
         }
 
         private void comprobarRepetidos(String nom)
-        {     
-            string[] archivos = Directory.GetFiles(rutaGuardado, "*.enc");
+        {
+            string[] archivos = Directory.GetFiles(Path.Combine(rutaGuardado,"CSarchivosENC"), "*.enc");
 
             if (archivos.Length != 0)
             {
@@ -389,28 +722,25 @@ namespace Practica_CS_encriptar_desencriptar_F1
             // Incrementa la posición vertical para la próxima fila
             posicionVerticalDESENC += nuevaFila.Height + 5; // Puedes ajustar el espacio entre filas
 
-            btnBorrar.Click += (sender, e) => EliminarFila(nuevaFila, txtDESENC.Text,2);//he quitado + ".enc"
+            btnBorrar.Click += (sender, e) => EliminarFila(nuevaFila, txtDESENC.Text, 2);//he quitado + ".enc"
 
             panelDESENC.Controls.Add(nuevaFila);
 
         }
 
+        //Comprueba archivos de las carpetas
         private void ComprobarArchivosEncriptados()
         {
-            if (!Directory.Exists(rutaGuardado) || !Directory.Exists(rutaGuardadoDESENC))
-            {
-                return;
-            }
 
             // Buscar archivos en la carpeta de guardado
-            string[] archivos = Directory.GetFiles(rutaGuardado, "*.enc");
-            string[] archivosDESENC = Directory.GetFiles(rutaGuardadoDESENC);
+            string[] archivos = Directory.GetFiles(Path.Combine(rutaGuardado, "CSarchivosENC"), "*.enc");
+            string[] archivosDESENC = Directory.GetFiles(Path.Combine(rutaGuardado, "CSarchivosDESENC"));
 
             foreach (string archivo in archivos)
             {
                 nombreArc = Path.GetFileNameWithoutExtension(archivo);
-                string claveFile = Path.Combine(rutaGuardado, nombreArc + "_clave.txt");
-                string ivFile = Path.Combine(rutaGuardado, nombreArc + "_IV.txt");
+                string claveFile = Path.Combine(rutaGuardado, "CSarchivosENC", nombreArc + "_clave.txt");
+                string ivFile = Path.Combine(rutaGuardado, "CSarchivosENC", nombreArc + "_IV.txt");
 
                 // Verificar si existen los archivos de clave y IV
                 if (File.Exists(claveFile) && File.Exists(ivFile))
@@ -451,24 +781,58 @@ namespace Practica_CS_encriptar_desencriptar_F1
             }
         }
 
-        public void ComprobarCarpeta()
-        {
-            string carpetaPractica = Path.Combine(Environment.CurrentDirectory, "CSarchivosENC");
-            string carpetaPractica2 = Path.Combine(Environment.CurrentDirectory, "CSarchivosDESENC");
+        //public void ComprobarCarpeta()
+        //{
+        //    string carpetaPractica = Path.Combine(Environment.CurrentDirectory, "CSarchivosENC");
+        //    string carpetaPractica2 = Path.Combine(Environment.CurrentDirectory, "CSarchivosDESENC");
 
-            if (!Directory.Exists(carpetaPractica))
-            {
-                // La carpeta "CSarchivosENC" no existe, créala
-                Directory.CreateDirectory(carpetaPractica);
-            }
-            rutaGuardado = carpetaPractica;
+        //    if (!Directory.Exists(carpetaPractica))
+        //    {
+        //        // La carpeta "CSarchivosENC" no existe, créala
+        //        Directory.CreateDirectory(carpetaPractica);
+        //    }
+        //    rutaGuardado = carpetaPractica;
 
-            if (!Directory.Exists(carpetaPractica2))
-            {
-                // La carpeta "CSarchivosENC" no existe, créala
-                Directory.CreateDirectory(carpetaPractica2);
-            }
-            rutaGuardadoDESENC = carpetaPractica2;
-        }
+        //    if (!Directory.Exists(carpetaPractica2))
+        //    {
+        //        // La carpeta "CSarchivosENC" no existe, créala
+        //        Directory.CreateDirectory(carpetaPractica2);
+        //    }
+        //    rutaGuardadoDESENC = carpetaPractica2;
+        //}
     }
 }
+
+
+
+////****QUITAR CUANDO SE IMPLEMENTE EL SERVIDOR****
+//private string EncriptarClavePrivada(string clavePrivada, string kdatos)
+//{
+//    using (SHA256 sha256 = SHA256.Create())
+//    {
+//        kdatosHash = sha256.ComputeHash(Encoding.UTF8.GetBytes(kdatos));
+
+//        using (Aes aesAlg = Aes.Create())
+//        {
+//            aesAlg.Key = kdatosHash;
+//            ivGlobal = aesAlg.IV; // Guarda el IV para la desencriptación
+
+//            ICryptoTransform encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
+
+//            using (MemoryStream msEncrypt = new MemoryStream())
+//            {
+//                using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
+//                {
+//                    using (StreamWriter swEncrypt = new StreamWriter(csEncrypt))
+//                    {
+//                        swEncrypt.Write(clavePrivada); // Escribe la clave privada como string
+//                    }
+//                }
+
+//                // Devuelve la clave privada encriptada y el IV como un único string Base64
+//                byte[] encryptedData = msEncrypt.ToArray();
+//                return Convert.ToBase64String(ivGlobal.Concat(encryptedData).ToArray());
+//            }
+//        }
+//    }
+//}
