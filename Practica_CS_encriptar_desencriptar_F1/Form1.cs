@@ -278,53 +278,18 @@ namespace Practica_CS_encriptar_desencriptar_F1
         private void desencriptar__Click(object sender, EventArgs e)
         {
             MessageBox.Show("Proceso de desencriptar");
+            
 
+        }
+        private void button1_Click(object sender, EventArgs e)
+        {
+            showModalCompartir();
         }
 
         private void encriptar__Click(object sender, EventArgs e)
         {
             MetodoDeEncriptado();
         }
-
-
-
-
-
-        //clavePrivadaEncriptada la obtengo del servidor
-        //private string DesencriptarClavePrivada(string clavePrivadaEncriptada, string kdatos)
-        //{
-        //    //Este es el encabezado del método. Toma dos parámetros: clavePrivadaEncriptada,
-        //    //que es la clave privada RSA cifrada en formato de cadena Base64, y kdatos,
-        //    //que se usa para generar la clave de desencriptación AES.
-        //    byte[] TodoCifrado = Convert.FromBase64String(clavePrivadaEncriptada);
-
-        //    using (SHA256 sha256 = SHA256.Create())
-        //    {
-
-        //        byte[] key = sha256.ComputeHash(Encoding.UTF8.GetBytes(kdatos));//calve debe tener un tamaño adecuado y seguro para el cifrado AES
-        //        byte[] iv = TodoCifrado.Take(16).ToArray(); // Extrae el IV (primeros 16 bytes)
-        //        byte[] textocifrado = TodoCifrado.Skip(16).ToArray(); // Extrae el texto cifrado
-
-        //        using (Aes aesAlg = Aes.Create())
-        //        {
-        //            aesAlg.Key = key;
-        //            aesAlg.IV = iv;
-
-        //            ICryptoTransform decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
-
-        //            using (MemoryStream msDecrypt = new MemoryStream(textocifrado))
-        //            {
-        //                using (CryptoStream csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
-        //                {
-        //                    using (StreamReader srDecrypt = new StreamReader(csDecrypt))
-        //                    {
-        //                        return srDecrypt.ReadToEnd();
-        //                    }
-        //                }
-        //            }
-        //        }
-        //    }
-        //}
 
         private string DesencriptarClavePrivada(string cipherText, string password)
         {
@@ -352,7 +317,6 @@ namespace Practica_CS_encriptar_desencriptar_F1
                 }
             }
         }
-
 
         private void Desencriptado(String nombre)
         {
@@ -450,6 +414,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
             comprobarRepetidos(nombreArc);
 
+
             // Crear una instancia de AES con la clave y el IV generados
             using (Aes objetoAes = Aes.Create())
             {
@@ -514,6 +479,48 @@ namespace Practica_CS_encriptar_desencriptar_F1
             //Actualiz la paggina :
 
             ActualizarLista();
+        }
+
+        private async void showModalCompartir()
+        {
+            // Verificar si se ha seleccionado un archivo
+            if (string.IsNullOrEmpty(txt1.Text))
+            {
+                MessageBox.Show("Por favor, seleccione un archivo para compartir.");
+                return;
+            }
+
+            // Obtener lista de usuarios (asumiendo que tienes un método para esto)
+            var userList = await GetUserList();
+
+            // Crear y configurar el formulario modal
+            var modalForm = new CompartirModalForm(userList);
+            var result = modalForm.ShowDialog();
+
+            // Manejar el resultado del modal
+            if (result == DialogResult.OK)
+            {
+                // Obtener la lista de usuarios seleccionados
+                var selectedUsers = modalForm.SelectedUsers;
+
+                // Realizar la acción de compartir aquí
+            }
+        }
+
+        private async Task<string> GetUserList()
+        {
+
+            HttpResponseMessage response = await _httpClient.GetAsync(ServerUrl + "/getAllUsers");
+
+            if (response.IsSuccessStatusCode)
+            {
+                // Lee el contenido de la respuesta como string
+                string userList = await response.Content.ReadAsStringAsync();
+                return userList;
+            }
+
+            else return string.Empty;
+            
         }
 
         // Método para generar una clave aleatoria de 32 bytes (256 bits)
@@ -728,7 +735,6 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
         }
 
-        //Comprueba archivos de las carpetas
         private void ComprobarArchivosEncriptados()
         {
 
@@ -781,58 +787,6 @@ namespace Practica_CS_encriptar_desencriptar_F1
             }
         }
 
-        //public void ComprobarCarpeta()
-        //{
-        //    string carpetaPractica = Path.Combine(Environment.CurrentDirectory, "CSarchivosENC");
-        //    string carpetaPractica2 = Path.Combine(Environment.CurrentDirectory, "CSarchivosDESENC");
-
-        //    if (!Directory.Exists(carpetaPractica))
-        //    {
-        //        // La carpeta "CSarchivosENC" no existe, créala
-        //        Directory.CreateDirectory(carpetaPractica);
-        //    }
-        //    rutaGuardado = carpetaPractica;
-
-        //    if (!Directory.Exists(carpetaPractica2))
-        //    {
-        //        // La carpeta "CSarchivosENC" no existe, créala
-        //        Directory.CreateDirectory(carpetaPractica2);
-        //    }
-        //    rutaGuardadoDESENC = carpetaPractica2;
-        //}
+       
     }
 }
-
-
-
-////****QUITAR CUANDO SE IMPLEMENTE EL SERVIDOR****
-//private string EncriptarClavePrivada(string clavePrivada, string kdatos)
-//{
-//    using (SHA256 sha256 = SHA256.Create())
-//    {
-//        kdatosHash = sha256.ComputeHash(Encoding.UTF8.GetBytes(kdatos));
-
-//        using (Aes aesAlg = Aes.Create())
-//        {
-//            aesAlg.Key = kdatosHash;
-//            ivGlobal = aesAlg.IV; // Guarda el IV para la desencriptación
-
-//            ICryptoTransform encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
-
-//            using (MemoryStream msEncrypt = new MemoryStream())
-//            {
-//                using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
-//                {
-//                    using (StreamWriter swEncrypt = new StreamWriter(csEncrypt))
-//                    {
-//                        swEncrypt.Write(clavePrivada); // Escribe la clave privada como string
-//                    }
-//                }
-
-//                // Devuelve la clave privada encriptada y el IV como un único string Base64
-//                byte[] encryptedData = msEncrypt.ToArray();
-//                return Convert.ToBase64String(ivGlobal.Concat(encryptedData).ToArray());
-//            }
-//        }
-//    }
-//}

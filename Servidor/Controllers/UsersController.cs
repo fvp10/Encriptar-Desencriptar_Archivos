@@ -54,6 +54,21 @@ public class UsersController : ControllerBase
         }
     }
 
+    [HttpGet("/getAllUsers")]
+
+    public IActionResult GetAllUserFolders() {
+        try
+        {
+            var folders = _userManager.GetAllUserFolders();
+            return Ok(folders);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = $"Error al obtener las carpetas de usuario: {ex.Message}" });
+        }
+    }
+
+
     [HttpGet("{username}/get-folder")]
     public IActionResult GetFolder(string username)
     {

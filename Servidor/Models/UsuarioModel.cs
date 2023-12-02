@@ -53,6 +53,7 @@ public class UsuarioModel
         // Hash de la contraseña
         var hashPassword = GetSHA256Hash(password);
 
+
         // Dividir el hash en               
         var kDatos = hashPassword.Substring(0, hashPassword.Length / 2);
         var kLogin = hashPassword.Substring(hashPassword.Length / 2);
@@ -169,7 +170,7 @@ public class UsuarioModel
 
 
     }
-
+    // Devuelve todo de un usuario para visualizar sus datos
     public object GetUserDetails(string username)
     {
         var userPath = Path.Combine(_usersFolderPath, username);
@@ -230,6 +231,15 @@ public class UsuarioModel
 
         // Eliminar la carpeta temporal
         Directory.Delete(tempFolder, true);
+    }
+    
+
+    // Devuelve todos los usuarios
+    public List<string> GetAllUserFolders()
+    {
+        var usersFolderPath = GetUsersFolderPath();
+        var directories = Directory.GetDirectories(usersFolderPath);
+        return directories.Select(Path.GetFileName).ToList();
     }
 
     public string GetUsersFolderPath()
