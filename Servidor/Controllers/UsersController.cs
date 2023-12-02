@@ -54,8 +54,7 @@ public class UsersController : ControllerBase
         }
     }
 
-    [HttpGet("/getAllUsers")]
-
+    [HttpGet("getAllUsers")]
     public IActionResult GetAllUserFolders() {
         try
         {

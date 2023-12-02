@@ -490,11 +490,11 @@ namespace Practica_CS_encriptar_desencriptar_F1
                 return;
             }
 
-            // Obtener lista de usuarios (asumiendo que tienes un método para esto)
+            
             var userList = await GetUserList();
 
             // Crear y configurar el formulario modal
-            var modalForm = new CompartirModalForm(userList);
+            var modalForm = new ModalCompartir(userList);
             var result = modalForm.ShowDialog();
 
             // Manejar el resultado del modal
@@ -510,7 +510,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
         private async Task<string> GetUserList()
         {
 
-            HttpResponseMessage response = await _httpClient.GetAsync(ServerUrl + "/getAllUsers");
+            HttpResponseMessage response = await _httpClient.GetAsync(ServerUrl + "getAllUsers");
 
             if (response.IsSuccessStatusCode)
             {
