@@ -13,6 +13,7 @@ using System.IO.Compression;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 using System.Net;
 using System.Net.Http.Headers;
+using Practica_CS_encriptar_desencriptar_F1.Modelos;
 
 namespace Practica_CS_encriptar_desencriptar_F1
 {
@@ -56,9 +57,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
                 Comprimir();
                 EnviarZipAlServidorAsync(rutaGuardado,_username, ServerUrl);
                 BorrarCarpetaUsuario();
-                this.Hide();
-                LoginForm main2 = new LoginForm();//CREAMOS UN NUEVO FORM 
-                main2.Show(); //LO MOSTRAMOS 
+                Application.Exit();
             }
             else
             {
@@ -295,9 +294,8 @@ namespace Practica_CS_encriptar_desencriptar_F1
         {
             byte[] cipherBytes = Convert.FromBase64String(cipherText);
 
-            // Usar la contraseña directamente como antes; aunque esto es inseguro y solo para demostración.
-            byte[] key = new byte[32]; // AES requiere una clave de 256 bits para AES-256
-            byte[] iv = new byte[16]; // El IV siempre necesita 16 bytes para AES
+            byte[] key = new byte[32]; // AES-256 requiere una clave de 32 bytes
+            byte[] iv = new byte[16]; // El IV para AES siempre necesita 16 bytes
             Array.Copy(Encoding.UTF8.GetBytes(password.PadRight(key.Length)), key, key.Length);
             Array.Copy(Encoding.UTF8.GetBytes(password.PadRight(iv.Length)), iv, iv.Length);
 
@@ -342,7 +340,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
             RSACryptoServiceProvider rsaDecryptor = new RSACryptoServiceProvider();
             rsaDecryptor.FromXmlString(clavePrivada); // Cargar la clave privada
             byte[] claveDesencriptadaRSA = rsaDecryptor.Decrypt(claveEncriptadaRSA, false);
-            byte[] claveAES = Convert.FromBase64String(Encoding.UTF8.GetString(claveDesencriptadaRSA));
+            byte[] claveAES = claveDesencriptadaRSA;
 
             byte[] iv = File.ReadAllBytes(RutArchivoIV);
             //byte[] key = Convert.FromBase64String(File.ReadAllText(RutaArchivoClave));
@@ -430,7 +428,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
                 RSACryptoServiceProvider rsaEncryptor = new RSACryptoServiceProvider();
                 rsaEncryptor.FromXmlString(clavePublica); // Cargar la clave pública
-                byte[] claveEncriptadaRSA = rsaEncryptor.Encrypt(claveBase64Bytes, false);
+                byte[] claveEncriptadaRSA = rsaEncryptor.Encrypt(clave, false);
 
                 // Guardar la clave encriptada RSA como bytes
                 string archivoClave = Path.Combine(rutaGuardado , "CSarchivosENC", nombreArc + "_clave.txt");
@@ -483,44 +481,164 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
         private async void showModalCompartir()
         {
-            // Verificar si se ha seleccionado un archivo
             if (string.IsNullOrEmpty(txt1.Text))
             {
                 MessageBox.Show("Por favor, seleccione un archivo para compartir.");
                 return;
             }
 
-            
-            var userList = await GetUserList();
-
-            // Crear y configurar el formulario modal
+            List<Usuario> userList = await GetUserList();
             var modalForm = new ModalCompartir(userList);
             var result = modalForm.ShowDialog();
 
-            // Manejar el resultado del modal
+            string nombreRemitente = _username;
+
             if (result == DialogResult.OK)
             {
-                // Obtener la lista de usuarios seleccionados
-                var selectedUsers = modalForm.SelectedUsers;
+                var selectedUsers = modalForm.SelectedUsuarios;
+                byte[] claveAES = GenerarClaveAleatoria();
+                byte[] ivAES = GenerarIVAleatorio();
 
-                // Realizar la acción de compartir aquí
+                string carpetaTemporal = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+                Directory.CreateDirectory(carpetaTemporal);
+
+                string archivoEncriptado = EncriptarArchivoConAES(openFileDialog1.FileName, claveAES, ivAES, carpetaTemporal, nombreRemitente);
+
+                foreach (var usuario in selectedUsers)
+                {
+                    byte[] claveEncriptadaRSA = EncriptarClaveConRSA(claveAES, usuario.PublicKey);
+                    CrearCarpetaConDatos(nombreRemitente, claveEncriptadaRSA, ivAES, archivoEncriptado, carpetaTemporal);
+                    string archivoZip = ComprimirCarpeta(carpetaTemporal);
+
+                    bool exito = await EnviarDatos(usuario.NombreUsuario, archivoZip);
+                    if (!exito)
+                    {
+                        MessageBox.Show("Error al enviar datos para el usuario: " + usuario.NombreUsuario);
+                    }
+
+                    if (File.Exists(archivoZip))
+                    {
+                        File.Delete(archivoZip);
+                    }
+                }
+
+                Directory.Delete(carpetaTemporal, true);
+                ActualizarLista();
             }
         }
 
-        private async Task<string> GetUserList()
-        {
 
+
+
+
+        private void CrearCarpetaConDatos(string nombreRemitente, byte[] claveEncriptadaRSA, byte[] iv, string archivoEncriptado, string carpetaTemporal)
+        {
+            string nombreBaseArchivo = Path.GetFileNameWithoutExtension(archivoEncriptado);
+
+            string nombreClave = $"{nombreBaseArchivo}_clave.txt";
+            string nombreIV = $"{nombreBaseArchivo}_IV.txt";
+
+            string rutaClaveEncriptada = Path.Combine(carpetaTemporal, nombreClave);
+            string rutaIVFinal = Path.Combine(carpetaTemporal, nombreIV);
+
+            File.WriteAllBytes(rutaClaveEncriptada, claveEncriptadaRSA);
+            File.WriteAllBytes(rutaIVFinal, iv);
+        }
+
+
+
+
+
+        private string ComprimirCarpeta(string carpetaTemporal)
+        {
+            string archivoZip = Path.Combine(Path.GetTempPath(), "compartido_" + Guid.NewGuid().ToString() + ".zip");
+            if (File.Exists(archivoZip))
+            {
+                File.Delete(archivoZip);
+            }
+
+            ZipFile.CreateFromDirectory(carpetaTemporal, archivoZip);
+            return archivoZip;
+        }
+
+
+        private async Task<bool> EnviarDatos(string nombreUsuario, string rutaArchivoZip)
+        {
+            try
+            {
+                using (var content = new MultipartFormDataContent())
+                {
+                    var fileContent = new StreamContent(File.OpenRead(rutaArchivoZip));
+                    fileContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
+                    {
+                        Name = "file",
+                        FileName = Path.GetFileName(rutaArchivoZip)
+                    };
+                    content.Add(fileContent);
+
+                    var response = await _httpClient.PostAsync(ServerUrl + $"{nombreUsuario}" + "/uploadSharedFiles", content);
+                    return response.IsSuccessStatusCode;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error al enviar datos: " + ex.Message);
+                return false;
+            }
+        }
+
+        private string EncriptarArchivoConAES(string rutaArchivo, byte[] clave, byte[] iv, string carpetaTemporal, string nombreRemitente)
+        {
+            using (Aes aes = Aes.Create())
+            {
+                aes.Key = clave;
+                aes.IV = iv;
+                aes.Mode = CipherMode.CBC;
+
+                string nombreBaseArchivo = Path.GetFileNameWithoutExtension(rutaArchivo);
+                string extension = Path.GetExtension(rutaArchivo);
+                string nombreArchivoEncriptado = $"compartidoPor_{nombreRemitente}_{nombreBaseArchivo}{extension}.enc";
+                string archivoEncriptado = Path.Combine(carpetaTemporal, nombreArchivoEncriptado);
+
+                using (var encryptor = aes.CreateEncryptor())
+                using (var archivoEntrada = new FileStream(rutaArchivo, FileMode.Open))
+                using (var archivoSalida = new FileStream(archivoEncriptado, FileMode.Create))
+                using (var cryptoStream = new CryptoStream(archivoSalida, encryptor, CryptoStreamMode.Write))
+                {
+                    archivoEntrada.CopyTo(cryptoStream);
+                }
+
+                return archivoEncriptado;
+            }
+        }
+
+
+
+
+        private byte[] EncriptarClaveConRSA(byte[] claveAES, string clavePublicaRSA)
+        {
+            using (var rsa = new RSACryptoServiceProvider())
+            {
+                rsa.FromXmlString(clavePublicaRSA);
+                return rsa.Encrypt(claveAES, false);
+            }
+        }
+
+
+        private async Task<List<Usuario>> GetUserList()
+        {
             HttpResponseMessage response = await _httpClient.GetAsync(ServerUrl + "getAllUsers");
 
             if (response.IsSuccessStatusCode)
             {
-                // Lee el contenido de la respuesta como string
-                string userList = await response.Content.ReadAsStringAsync();
-                return userList;
+                string userListJson = await response.Content.ReadAsStringAsync();
+                List<Usuario> usuarios = JsonConvert.DeserializeObject<List<Usuario>>(userListJson);
+                return usuarios; // Devuelve la lista de usuarios deserializada
             }
-
-            else return string.Empty;
-            
+            else
+            {
+                return new List<Usuario>(); // Retorna una lista vacía si la solicitud no es exitosa
+            }
         }
 
         // Método para generar una clave aleatoria de 32 bytes (256 bits)
@@ -787,6 +905,9 @@ namespace Practica_CS_encriptar_desencriptar_F1
             }
         }
 
-       
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }

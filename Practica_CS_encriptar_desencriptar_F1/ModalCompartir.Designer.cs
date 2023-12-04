@@ -34,16 +34,17 @@
             // 
             // flowLayoutPanel1
             // 
-            this.flowLayoutPanel1.Location = new System.Drawing.Point(23, 12);
+            this.flowLayoutPanel1.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
+            this.flowLayoutPanel1.Location = new System.Drawing.Point(70, 12);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(446, 403);
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(191, 403);
             this.flowLayoutPanel1.TabIndex = 0;
             // 
             // enviar
             // 
-            this.enviar.Location = new System.Drawing.Point(547, 191);
+            this.enviar.Location = new System.Drawing.Point(311, 167);
             this.enviar.Name = "enviar";
-            this.enviar.Size = new System.Drawing.Size(205, 46);
+            this.enviar.Size = new System.Drawing.Size(273, 108);
             this.enviar.TabIndex = 1;
             this.enviar.Text = "enviar";
             this.enviar.UseVisualStyleBackColor = true;

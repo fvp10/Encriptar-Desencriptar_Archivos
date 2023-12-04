@@ -55,11 +55,11 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet("getAllUsers")]
-    public IActionResult GetAllUserFolders() {
+    public IActionResult GetAllUserInfoShare() {
         try
         {
-            var folders = _userManager.GetAllUserFolders();
-            return Ok(folders);
+            var userShareInfo = _userManager.GetAllUserPublicKeys();
+            return Ok(userShareInfo);
         }
         catch (Exception ex)
         {
@@ -147,6 +147,52 @@ public class UsersController : ControllerBase
             }
         }
     }
+
+    [HttpPost("{username}/uploadSharedFiles")]
+    public IActionResult UploadSharedFiles(string username, IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest("Archivo no proporcionado o vacío.");
+        }
+
+        var userEncryptedFolderPath = Path.Combine(_userManager.GetUsersFolderPath(), username, "CSarchivosENC");
+
+        if (!Directory.Exists(userEncryptedFolderPath))
+        {
+            Directory.CreateDirectory(userEncryptedFolderPath);
+        }
+
+        var tempZipPath = Path.GetTempFileName(); // Asegúrate de que esta línea esté generando una ruta de archivo válida
+
+        try
+        {
+            // Guardar el archivo ZIP temporalmente
+            using (var stream = new FileStream(tempZipPath, FileMode.Create))
+            {
+                file.CopyTo(stream);
+            }
+
+            // Descomprimir el archivo ZIP directamente en la carpeta de archivos encriptados del usuario
+            ZipFile.ExtractToDirectory(tempZipPath, userEncryptedFolderPath, true);
+
+            return Ok("Archivos compartidos cargados exitosamente en la carpeta de archivos encriptados.");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"Error al procesar el archivo: {ex.Message}");
+        }
+        finally
+        {
+            // Eliminar el archivo ZIP temporal
+            if (System.IO.File.Exists(tempZipPath)) 
+            {
+                System.IO.File.Delete(tempZipPath);
+            }
+        }
+    }
+
+
 }
 
 public class RegisterModel

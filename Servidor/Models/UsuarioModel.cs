@@ -242,6 +242,49 @@ public class UsuarioModel
         return directories.Select(Path.GetFileName).ToList();
     }
 
+
+    
+
+    public List<object> GetAllUserPublicKeys()
+    {
+        var usersFolderPath = GetUsersFolderPath();
+        var directories = Directory.GetDirectories(usersFolderPath);
+
+        var userPublicKeys = new List<object>();
+
+        foreach (var directory in directories)
+        {
+            var username = Path.GetFileName(directory);
+            var userDetails = GetUserPublicKey(username);
+            if (userDetails != null)
+            {
+                userPublicKeys.Add(userDetails);
+            }
+        }
+
+        return userPublicKeys;
+    }
+
+    public object GetUserPublicKey(string username)
+    {
+        var userPath = Path.Combine(_usersFolderPath, username);
+        var publicKeyPath = Path.Combine(userPath, "publicKey.xml");
+
+        if (!File.Exists(publicKeyPath))
+        {
+            return null;
+        }
+
+        var publicKey = File.ReadAllText(publicKeyPath);
+
+        return new
+        {
+            NombreUsuario = username,
+            PublicKey = publicKey
+        };
+    }
+
+
     public string GetUsersFolderPath()
     {
         return _usersFolderPath;

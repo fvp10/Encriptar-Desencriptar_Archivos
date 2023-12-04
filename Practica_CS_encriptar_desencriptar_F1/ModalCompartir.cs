@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Practica_CS_encriptar_desencriptar_F1.Modelos;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -12,40 +13,27 @@ namespace Practica_CS_encriptar_desencriptar_F1
 {
     public partial class ModalCompartir : Form
     {
-        public List<string> SelectedUsers { get; private set; }
+        public List<Usuario> SelectedUsuarios { get; private set; }
 
-        public ModalCompartir(List<string> users)
+        public ModalCompartir(List<Usuario> users)
         {
             InitializeComponent();
-            SelectedUsers = new List<string>();
+            SelectedUsuarios = new List<Usuario>();
             PopulateUsers(users);
         }
 
-        private void PopulateUsers(List<string> users)
+        private void PopulateUsers(List<Usuario> users)
         {
             foreach (var user in users)
             {
                 var checkBox = new CheckBox
                 {
-                    Text = user,
-                    AutoSize = true
+                    Text = user.NombreUsuario,
+                    AutoSize = true,
+                    Tag = user // Almacenar el objeto Usuario completo en la propiedad Tag
                 };
-                flowLayoutPanel1.Controls.Add(checkBox); // Asumiendo que tienes un FlowLayoutPanel
+                flowLayoutPanel1.Controls.Add(checkBox);
             }
-        }
-
-        private void btnEnviar_Click(object sender, EventArgs e)
-        {
-            foreach (CheckBox checkBox in flowLayoutPanel1.Controls)
-            {
-                if (checkBox.Checked)
-                {
-                    SelectedUsers.Add(checkBox.Text);
-                }
-            }
-
-            this.DialogResult = DialogResult.OK;
-            this.Close();
         }
 
         private void ModalCompartir_Load(object sender, EventArgs e)
@@ -53,9 +41,20 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
         }
 
+
         private void button1_Click(object sender, EventArgs e)
         {
+            foreach (CheckBox checkBox in flowLayoutPanel1.Controls)
+            {
+                if (checkBox.Checked)
+                {
+                    SelectedUsuarios.Add((Usuario)checkBox.Tag); // Agregar el Usuario al que corresponde el checkbox marcado
+                }
+            }
 
+            this.DialogResult = DialogResult.OK;
+            this.Close();
         }
     }
 }
+
