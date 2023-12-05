@@ -36,12 +36,12 @@ namespace Practica_CS_encriptar_desencriptar_F1
                 string kdatos = hashedPassword.Substring(0, halfLength);
                 string klogin = hashedPassword.Substring(halfLength);
 
-                kLogin = BCrypt.Net.BCrypt.HashPassword(klogin);
+                string kLoginBcrypt = BCrypt.Net.BCrypt.HashPassword(klogin);
 
                 var userData = new
                 {
                     NombreUsuario = username,
-                    KLogin = kLogin
+                    KLogin = kLoginBcrypt
                 };
 
                 // Guarda el usuario.json en el directorio del usuario
