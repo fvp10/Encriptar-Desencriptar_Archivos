@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Windows.Forms;
 
 namespace Practica_CS_encriptar_desencriptar_F1
@@ -44,12 +45,13 @@ namespace Practica_CS_encriptar_desencriptar_F1
                     KLogin = kLoginBcrypt
                 };
 
-                // Guarda el usuario.json en el directorio del usuario
-                File.WriteAllText(Path.Combine(Application.StartupPath, "Usuarios", username, "usuario.json"), JsonSerializer.Serialize(userData));
+                // Guarda el usuario.json en el directorio del usuario                                         Hay una ambiguedad en las librerias Text.Json y Newtonsoft
+                                                                                                             //Por lo que se especifica antes de usar el serializer que libreria queremos usar
+                File.WriteAllText(Path.Combine(Application.StartupPath, "Usuarios", username, "usuario.json"), System.Text.Json.JsonSerializer.Serialize(userData));
 
                 // Genera las claves criptográficas RSA
                 var (publicKey, privateKey) = GenerateRSAKeys(); // Debes definir este método
-                var encryptedPrivateKey = EncryptWithPassword(privateKey, kDatos); // Debes definir este método
+                var encryptedPrivateKey = EncryptWithPassword(privateKey, kdatos); // Debes definir este método
 
                 // Guarda las claves en archivos
                 File.WriteAllText(Path.Combine(Application.StartupPath, "Usuarios", username, "publicKey.xml"), publicKey);
@@ -64,6 +66,43 @@ namespace Practica_CS_encriptar_desencriptar_F1
             }
         }
 
+
+        private (string, string) GenerateRSAKeys()
+        {
+            using (var rsa = new RSACryptoServiceProvider(2048))
+            {
+                return (rsa.ToXmlString(false), rsa.ToXmlString(true));
+            }
+        }
+
+        private string EncryptWithPassword(string clearText, string password)
+        {
+            byte[] clearBytes = System.Text.Encoding.Unicode.GetBytes(clearText);
+
+            // Utilizar la contraseña directamente; es necesario que tenga la longitud adecuada.
+            // Esto es INSEGURO y solo para fines demostrativos.
+            // En producción, siempre debe usarse un salt y una función de derivación de clave segura.
+            byte[] key = new byte[32]; // AES requiere una clave de 256 bits para AES-256.
+            byte[] iv = new byte[16]; // El IV siempre necesita 16 bytes para AES.
+            Array.Copy(System.Text.Encoding.UTF8.GetBytes(password.PadRight(key.Length)), key, key.Length);
+            Array.Copy(System.Text.Encoding.UTF8.GetBytes(password.PadRight(iv.Length)), iv, iv.Length);
+
+            using (Aes aes = Aes.Create())
+            {
+                aes.Key = key;
+                aes.IV = iv;
+                aes.Mode = CipherMode.CBC;
+
+                using (var ms = new MemoryStream())
+                {
+                    using (var cs = new CryptoStream(ms, aes.CreateEncryptor(), CryptoStreamMode.Write))
+                    {
+                        cs.Write(clearBytes, 0, clearBytes.Length);
+                    }
+                    return Convert.ToBase64String(ms.ToArray());
+                }
+            }
+        }
 
         private void textBox2_TextChanged(object sender, EventArgs e)
         {

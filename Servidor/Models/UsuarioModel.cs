@@ -39,63 +39,63 @@ public class UsuarioModel
         }
     }
 
-    public bool RegisterUser(string username, string password)
-    {
-        var userPath = Path.Combine(_usersFolderPath, username);
-        if (Directory.Exists(userPath))
-        {
-            // El usuario ya existe
-            return false;
-        }
+    //public bool RegisterUser(string username, string password)
+    //{
+    //    var userPath = Path.Combine(_usersFolderPath, username);
+    //    if (Directory.Exists(userPath))
+    //    {
+    //        // El usuario ya existe
+    //        return false;
+    //    }
 
-        Directory.CreateDirectory(userPath);
+    //    Directory.CreateDirectory(userPath);
 
-        // Hash de la contraseña
-        var hashPassword = GetSHA256Hash(password);
+    //    // Hash de la contraseña
+    //    var hashPassword = GetSHA256Hash(password);
 
-        // Dividir el hash en               
-        var kDatos = hashPassword.Substring(0, hashPassword.Length / 2);
-        var kLogin = hashPassword.Substring(hashPassword.Length / 2);
+    //    // Dividir el hash en               
+    //    var kDatos = hashPassword.Substring(0, hashPassword.Length / 2);
+    //    var kLogin = hashPassword.Substring(hashPassword.Length / 2);
 
-        kLogin = BCrypt.Net.BCrypt.HashPassword(kLogin);
+    //    kLogin = BCrypt.Net.BCrypt.HashPassword(kLogin);
 
-        // Crear archivo usuario.json
-        var userData = new
-        {
-            NombreUsuario = username,
-            KLogin = kLogin
-        };
+    //    // Crear archivo usuario.json
+    //    var userData = new
+    //    {
+    //        NombreUsuario = username,
+    //        KLogin = kLogin
+    //    };
 
-        var userFilePath = Path.Combine(userPath, "usuario.json");
-        File.WriteAllText(userFilePath, JsonSerializer.Serialize(userData));
+    //    var userFilePath = Path.Combine(userPath, "usuario.json");
+    //    File.WriteAllText(userFilePath, JsonSerializer.Serialize(userData));
 
-        // Generar claves pública y privada
-        using (var rsa = new RSACryptoServiceProvider(2048))
-        {
-            try
-            {
-                // Obtener la clave pública y privada
-                var publicKey = rsa.ToXmlString(false); // Solo la clave pública
-                var privateKey = rsa.ToXmlString(true); // La clave privada 
+    //    // Generar claves pública y privada
+    //    using (var rsa = new RSACryptoServiceProvider(2048))
+    //    {
+    //        try
+    //        {
+    //            // Obtener la clave pública y privada
+    //            var publicKey = rsa.ToXmlString(false); // Solo la clave pública
+    //            var privateKey = rsa.ToXmlString(true); // La clave privada 
 
 
-                // Cifrar la clave privada con KDatos
-                var encryptedPrivateKey = EncryptWithPassword(privateKey, kDatos);
+    //            // Cifrar la clave privada con KDatos
+    //            var encryptedPrivateKey = EncryptWithPassword(privateKey, kDatos);
 
-                // Guardar la clave pública y privada cifrada
-                File.WriteAllText(Path.Combine(userPath, "publicKey.xml"), publicKey);
-                File.WriteAllText(Path.Combine(userPath, "privateKeyEncrypted.xml"), encryptedPrivateKey);
-            }
-            finally
-            {
-                rsa.PersistKeyInCsp = false;
-            }
-        }
+    //            // Guardar la clave pública y privada cifrada
+    //            File.WriteAllText(Path.Combine(userPath, "publicKey.xml"), publicKey);
+    //            File.WriteAllText(Path.Combine(userPath, "privateKeyEncrypted.xml"), encryptedPrivateKey);
+    //        }
+    //        finally
+    //        {
+    //            rsa.PersistKeyInCsp = false;
+    //        }
+    //    }
 
-        ComprobarCarpeta(userPath);
+    //    ComprobarCarpeta(userPath);
 
-        return true;
-    }
+    //    return true;
+    //}
 
     public void ComprobarCarpeta(string path)
     {
