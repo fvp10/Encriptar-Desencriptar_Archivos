@@ -139,6 +139,13 @@ namespace Practica_CS_encriptar_desencriptar_F1
                 return stringBuilder.ToString();
             }
         }
+
+        private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            this.Hide(); // OCULTAMOS EL LOGIN
+            RegistroForm registro = new RegistroForm();   //CREAMOS UN NUEVO FORM 
+            registro.Show(); //LO MOSTRAMOS 
+        }
     }
 }
 
