@@ -54,11 +54,11 @@ public class UsersController : ControllerBase
         }
     }
 
-    [HttpGet("getAllUsers")]
-    public IActionResult GetAllUserInfoShare() {
+    [HttpGet("{username}/getAllUsers")]
+    public IActionResult GetAllUserInfoShare(string username) {
         try
         {
-            var userShareInfo = _userManager.GetAllUserPublicKeys();
+            var userShareInfo = _userManager.GetAllUserPublicKeys(username);
             return Ok(userShareInfo);
         }
         catch (Exception ex)
@@ -114,6 +114,14 @@ public class UsersController : ControllerBase
 
         var userFolderPath = Path.Combine(_userManager.GetUsersFolderPath(), username);
 
+
+        
+        var archivosENCPath = Path.Combine(userFolderPath, "CSarchivosENC");
+        var archivosDESENCPath = Path.Combine(userFolderPath, "CSarchivosDESENC");
+
+        _userManager.DeleteFilesInFolder(archivosENCPath);
+        _userManager.DeleteFilesInFolder(archivosDESENCPath);
+
         if (!Directory.Exists(userFolderPath))
         {
             return NotFound("Usuario no encontrado.");
@@ -130,7 +138,8 @@ public class UsersController : ControllerBase
             }
 
             // Descomprimir el archivo ZIP
-            ZipFile.ExtractToDirectory(tempZipPath, userFolderPath, true);
+
+            ZipFile.ExtractToDirectory(tempZipPath, userFolderPath, false);
 
             return Ok("Archivo cargado y descomprimido exitosamente.");
         }

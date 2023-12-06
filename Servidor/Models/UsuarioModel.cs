@@ -232,7 +232,7 @@ public class UsuarioModel
         // Eliminar la carpeta temporal
         Directory.Delete(tempFolder, true);
     }
-    
+
 
     // Devuelve todos los usuarios
     public List<string> GetAllUserFolders()
@@ -242,10 +242,18 @@ public class UsuarioModel
         return directories.Select(Path.GetFileName).ToList();
     }
 
+    public void DeleteFilesInFolder(string folderPath)
+    {
+        DirectoryInfo di = new DirectoryInfo(folderPath);
 
-    
+        foreach (FileInfo file in di.GetFiles())
+        {
+            file.Delete();
+        }
+    }
 
-    public List<object> GetAllUserPublicKeys()
+
+    public List<object> GetAllUserPublicKeys(string usuRemitente)
     {
         var usersFolderPath = GetUsersFolderPath();
         var directories = Directory.GetDirectories(usersFolderPath);
@@ -255,10 +263,16 @@ public class UsuarioModel
         foreach (var directory in directories)
         {
             var username = Path.GetFileName(directory);
-            var userDetails = GetUserPublicKey(username);
-            if (userDetails != null)
+
+            if (username != usuRemitente)
             {
-                userPublicKeys.Add(userDetails);
+
+
+                var userDetails = GetUserPublicKey(username);
+                if (userDetails != null)
+                {
+                    userPublicKeys.Add(userDetails);
+                }
             }
         }
 
