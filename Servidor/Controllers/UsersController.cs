@@ -16,14 +16,14 @@ public class UsersController : ControllerBase
     [HttpPost("register")]
     public IActionResult Register([FromBody] RegisterModel model)
     {
-        var result = _userManager.RegisterUser(model.Username, model.Password);
+        var result = _userManager.RegisterUser(model.Username,model.EncryptedPrivateKey,model.PublicKey, model.KLogin);
         if (result)
         {
-            return Ok(new { message = "Registro exitoso." });
+            return Ok(new { message = "Registro exitoso (parte Servidor)." });
         }
         else
         {
-            return BadRequest(new { message = "El usuario ya existe." });
+            return BadRequest(new { message = "El usuario ya existe(parte Servidor)." });
         }
     }
 
@@ -138,7 +138,9 @@ public class UsersController : ControllerBase
 public class RegisterModel
 {
     public string Username { get; set; }
-    public string Password { get; set; }
+    public string EncryptedPrivateKey { get; set; }
+    public string PublicKey { get; set; }
+    public string KLogin { get; set; }
 }
 
 public class LoginModel

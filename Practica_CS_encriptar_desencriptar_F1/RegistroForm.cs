@@ -2,22 +2,33 @@
 
 using System;
 using System.IO;
+using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace Practica_CS_encriptar_desencriptar_F1
 {
     public partial class RegistroForm : Form
     {
+        private static readonly HttpClient _httpClient = new HttpClient();
+        private const string url = "https://localhost:7045/Users/register";
         public RegistroForm()
         {
             InitializeComponent();
         }
-        private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        private void button1_Click(object sender, EventArgs e)
         {
             registroMetodo();
+        }
+        private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            this.Hide(); // OCULTAMOS EL LOGIN
+            LoginForm main = new LoginForm();   //CREAMOS UN NUEVO FORM 
+            main.Show(); //LO MOSTRAMOS 
         }
 
         public void registroMetodo()
@@ -28,7 +39,6 @@ namespace Practica_CS_encriptar_desencriptar_F1
             // Asumiendo que tienes métodos similares a los de UsuarioModel.cs en tu cliente
             if (!Directory.Exists(Path.Combine(Application.StartupPath, "Usuarios", username)))
             {
-                Directory.CreateDirectory(Path.Combine(Application.StartupPath, "Usuarios", username));
 
                 string hashedPassword = GetSHA256Hash(password);
 
@@ -45,25 +55,57 @@ namespace Practica_CS_encriptar_desencriptar_F1
                     KLogin = kLoginBcrypt
                 };
 
-                // Guarda el usuario.json en el directorio del usuario                                         Hay una ambiguedad en las librerias Text.Json y Newtonsoft
-                                                                                                             //Por lo que se especifica antes de usar el serializer que libreria queremos usar
-                File.WriteAllText(Path.Combine(Application.StartupPath, "Usuarios", username, "usuario.json"), System.Text.Json.JsonSerializer.Serialize(userData));
-
                 // Genera las claves criptográficas RSA
                 var (publicKey, privateKey) = GenerateRSAKeys(); // Debes definir este método
                 var encryptedPrivateKey = EncryptWithPassword(privateKey, kdatos); // Debes definir este método
 
-                // Guarda las claves en archivos
-                File.WriteAllText(Path.Combine(Application.StartupPath, "Usuarios", username, "publicKey.xml"), publicKey);
-                File.WriteAllText(Path.Combine(Application.StartupPath, "Usuarios", username, "privateKeyEncrypted.xml"), encryptedPrivateKey);
 
-                MessageBox.Show("Registro exitoso.");
-                // Aquí puedes cerrar el formulario de registro o redirigir al usuario
+                var registrationData = new
+                {
+                    Username = username,
+                    EncryptedPrivateKey = encryptedPrivateKey,
+                    PublicKey = publicKey,
+                    KLogin = kLoginBcrypt
+                };
+              EnviarDatosServidor(username,encryptedPrivateKey,publicKey,kLoginBcrypt);
+
             }
             else
             {
                 MessageBox.Show("El nombre de usuario ya existe.");
             }
+        }
+
+        private async Task EnviarDatosServidor(string username, string encryptedPrivateKey, string publicKey, string kLogin)
+        {
+
+            var registrationData = new
+            {
+                Username = username,
+                EncryptedPrivateKey = encryptedPrivateKey,
+                PublicKey = publicKey,
+                KLogin = kLogin
+            };
+            var content = new StringContent(JsonConvert.SerializeObject(registrationData), Encoding.UTF8, "application/json");
+
+            try
+            {
+                var response = await _httpClient.PostAsync(url, content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    MessageBox.Show("Registro exitoso (parte Cliente).");
+                }
+                else
+                {
+                    MessageBox.Show("Error en el registro (parte Cliente).");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error en la conexión con el servidor: " + ex.Message);
+            }
+
         }
 
 
@@ -109,10 +151,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
         }
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-
-        }
+        
 
         private string GetSHA256Hash(string input)
         {
