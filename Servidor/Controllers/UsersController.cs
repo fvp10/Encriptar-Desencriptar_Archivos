@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.IO.Compression;
 using System.IO;
+using System.Text.Json;
 
 [ApiController]
 [Route("[controller]")]
@@ -13,18 +14,34 @@ public class UsersController : ControllerBase
         _userManager = new UsuarioModel();
     }
 
-    [HttpPost("register")]
-    public IActionResult Register([FromBody] RegisterModel model)
+    public bool RegisterUser(string username, string encryptedPrivateKey, string publicKey, string kLoginBcrypt)
     {
-        var result = _userManager.RegisterUser(model.Username, model.Password);
-        if (result)
+        var userPath = Path.Combine(_usersFolderPath, username);
+        if (Directory.Exists(userPath))
         {
-            return Ok(new { message = "Registro exitoso." });
+            // El usuario ya existe
+            return false;
         }
-        else
+
+        Directory.CreateDirectory(userPath);
+
+        // Crear archivo usuario.json con el KLogin encriptado
+        var userData = new
         {
-            return BadRequest(new { message = "El usuario ya existe." });
-        }
+            NombreUsuario = username,
+            KLogin = kLoginBcrypt
+        };
+
+        var userFilePath = Path.Combine(userPath, "usuario.json");
+        File.WriteAllText(userFilePath, JsonSerializer.Serialize(userData));
+
+        // Guardar la clave pública y privada cifrada
+        File.WriteAllText(Path.Combine(userPath, "publicKey.xml"), publicKey);
+        File.WriteAllText(Path.Combine(userPath, "privateKeyEncrypted.xml"), encryptedPrivateKey);
+
+        ComprobarCarpeta(userPath);
+
+        return true;
     }
 
     [HttpPost("authenticate")]

@@ -25,7 +25,6 @@ namespace Practica_CS_encriptar_desencriptar_F1
         private Dictionary<System.Windows.Forms.Button, Panel> botonesYFilas = new Dictionary<System.Windows.Forms.Button, Panel>();
         private string rutaGuardado = Environment.CurrentDirectory;
         private string nombreArc;
-        private string nombreArcNormal;
         private Random rnd = new Random();
         ///Variables para implementación del servidor
         private string kdatos = "";
@@ -405,114 +404,140 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
         }
 
+
         private void MetodoDeEncriptado()
         {
-
-            // Verificar si se ha seleccionado un archivo
-            if (string.IsNullOrEmpty(txt1.Text))
+            if (!VerificarSeleccionDeArchivo())
             {
-                MessageBox.Show("Por favor, seleccione un archivo para encriptar.");
                 return;
             }
 
-            // Obtener la ruta del archivo seleccionado
-            string archivoOriginal = openFileDialog1.FileName;
+            string rutaArchivoOriginal = openFileDialog1.FileName;
+            asignarNombreUnico(rutaArchivoOriginal); // Asignamos a NombreArc un id unico
 
-            // Generar una clave aleatoria
             byte[] clave = GenerarClaveAleatoria();
-
-            // Generar un IV aleatorio
             byte[] iv = GenerarIVAleatorio();
-            nombreArc = Path.GetFileName(archivoOriginal);
 
+            EncriptarArchivo(rutaArchivoOriginal, clave, iv,"");
 
+            MessageBox.Show("Archivo encriptado y guardado en: " + rutaGuardado + "CSarchivosENC");
+            CrearNuevaFila();
+            ActualizarLista();
+        }
 
-            comprobarRepetidos(nombreArc);
-            
+        //Verifica si alrchivo ha sido seleccionado en el form
+        private bool VerificarSeleccionDeArchivo()
+        {
+            if (string.IsNullOrEmpty(txt1.Text))
+            {
+                MessageBox.Show("Por favor, seleccione un archivo.");
+                return false;
+            }
+            return true;
+        }
 
-            // Crear una instancia de AES con la clave y el IV generados
+        //Encripta el archivo con la clave y el iv
+        private void EncriptarArchivo(string archivoOriginal, byte[] clave, byte[] iv,string rutaCarpetaTemp)
+        {
             using (Aes objetoAes = Aes.Create())
             {
                 objetoAes.Key = clave;
                 objetoAes.IV = iv;
-                objetoAes.Mode = CipherMode.CBC; // Modo CBC
+                objetoAes.Mode = CipherMode.CBC;
 
-                // Convertir la clave AES a Base 64
-                string claveBase64 = Convert.ToBase64String(clave);
-                byte[] claveBase64Bytes = Encoding.UTF8.GetBytes(claveBase64);
+               
 
+                string archivoEncriptado = "";
 
+                if (rutaCarpetaTemp == "")
+                {
+                    archivoEncriptado = Path.Combine(rutaGuardado, "CSarchivosENC", nombreArc + ".enc");
+                    EncriptarClaveRSA(clave, iv, rutaCarpetaTemp, "");
+                }
+                else
+                {
+                    string nombreArchivoEncriptado = $"compartidoPor_{nombreRemitente}_{nombreArc}.enc";
+                    archivoEncriptado = Path.Combine(rutaCarpetaTemp,nombreArchivoEncriptado);
 
-                RSACryptoServiceProvider rsaEncryptor = new RSACryptoServiceProvider();
-                rsaEncryptor.FromXmlString(clavePublica); // Cargar la clave pública
+                }
 
-                Console.Out.WriteLineAsync(clavePublica);
-                Console.Out.WriteLineAsync(clavePublica.ToString());
                 
 
-                byte[] claveEncriptadaRSA = rsaEncryptor.Encrypt(clave, false);
-
-                // Guardar la clave encriptada RSA como bytes
-                string archivoClave = Path.Combine(rutaGuardado , "CSarchivosENC", nombreArc + "_clave.txt");
-                File.WriteAllBytes(archivoClave, claveEncriptadaRSA);
-
-
-
-
-                string archivoIV = Path.Combine(rutaGuardado , "CSarchivosENC", nombreArc + "_IV.txt");
-                File.WriteAllBytes(archivoIV, iv);
-
-
                 using (ICryptoTransform cifrado = objetoAes.CreateEncryptor())
+                using (FileStream archivoEnc = new FileStream(archivoEncriptado, FileMode.Create))
                 {
-                    // Ruta donde se guardará el archivo encriptado
-                    string archivoEncriptado = Path.Combine(rutaGuardado , "CSarchivosENC", nombreArc + ".enc");
-
-                    using (FileStream archivoenc = new FileStream(archivoEncriptado, FileMode.Create))
-                    {
-
-                        archivoenc.Write(iv, 0, iv.Length);
-
-                        using (FileStream fsIn = new FileStream(archivoOriginal, FileMode.Open))
-                        {
-                            //Crear un flujo de cifrado para cifrar los datos
-                            using (CryptoStream cs = new CryptoStream(archivoenc, cifrado, CryptoStreamMode.Write))
-                            {
-                                // Leer el archivo original y escribir los datos cifrados en el archivo encriptado
-                                int data;
-                                while ((data = fsIn.ReadByte()) != -1) // va byte a byte escribiendo el cifrado correspondiente, si llega al final devuelve -1 y para el bucle
-                                {
-                                    cs.WriteByte((byte)data);
-                                }
-                            }
-                        }
-                    }
+                    archivoEnc.Write(iv, 0, iv.Length);
+                    CifrarContenidoArchivo(archivoOriginal, cifrado, archivoEnc);
                 }
             }
-
-            // Notificar al usuario que la encriptación se ha completado
-            MessageBox.Show("Archivo encriptado y guardado en: " + rutaGuardado + "CSarchivosENC");
-
-            // Crear una nueva fila en la interfaz gráfica
-            CrearNuevaFila();
-
-            //Actualiz la paggina :
-
-            ActualizarLista();
         }
+
+
+        //Encripta la clave del archivo con la publica y guarda ambos en ../
+        private void EncriptarClaveRSA(byte[] clave, byte[] iv, string ruta, string clavePubUs)
+        {
+            //Cargamos la clave publica
+            RSACryptoServiceProvider rsaEncryptor = new RSACryptoServiceProvider();
+            if (clavePubUs != "")
+            {
+                rsaEncryptor.FromXmlString(clavePubUs);
+            }
+            else
+            {
+                rsaEncryptor.FromXmlString(clavePublica);
+            }
+            //Encriptamos la clave publica
+            byte[] claveEncriptadaRSA = rsaEncryptor.Encrypt(clave, false);
+
+            string nombreClave = $"{nombreArc}_clave.txt";
+            string nombreIV = $"{nombreArc}_IV.txt";
+
+            string rutaeEncriptado = Path.Combine(rutaGuardado, "CSarchivosENC");
+
+            if (ruta != "")
+            {
+                nombreClave = $"compartidoPor_{nombreRemitente}_{nombreArc}_clave.txt";
+                nombreIV = $"compartidoPor_{nombreRemitente}_{nombreArc}_IV.txt";
+
+                rutaeEncriptado = ruta;
+            }
+            //Creo el archivo con su nombre CLAVE
+            string archivoClave = Path.Combine(rutaeEncriptado, nombreClave);
+            File.WriteAllBytes(archivoClave, claveEncriptadaRSA);
+
+            //Creo el archivo con su nombre IV
+            string archivoIV = Path.Combine(rutaeEncriptado, nombreIV);
+            File.WriteAllBytes(archivoIV, iv);
+        }
+
+        //Coge el archivo y la instancia de criptostream
+        private void CifrarContenidoArchivo(string archivoOriginal, ICryptoTransform cifrado, FileStream archivoEnc)
+        {
+            using (FileStream fsIn = new FileStream(archivoOriginal, FileMode.Open)) // Abre el archivo y crea otro para volcar lo encriptado
+            using (CryptoStream cs = new CryptoStream(archivoEnc, cifrado, CryptoStreamMode.Write)) // Escribe en el archvio caada dato a encriptado
+            {
+                int data;
+                while ((data = fsIn.ReadByte()) != -1)
+                {
+                    cs.WriteByte((byte)data);
+                }
+            }
+        }
+
+
 
         private async void showModalCompartir()
         {
-            if (string.IsNullOrEmpty(txt1.Text))
+            if (!VerificarSeleccionDeArchivo())
             {
-                MessageBox.Show("Por favor, seleccione un archivo para compartir.");
                 return;
             }
+
             List<Usuario> userList = await GetUserList();
             var modalForm = new ModalCompartir(userList);
             var result = modalForm.ShowDialog();
 
-           
+
 
             if (result == DialogResult.OK)
             {
@@ -522,62 +547,37 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
                 string carpetaTemporal = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
                 Directory.CreateDirectory(carpetaTemporal);
-                 
-                comprobarRepetidos(openFileDialog1.FileName);
 
-                string archivoEncriptado = EncriptarArchivoConAES( claveAES, ivAES, carpetaTemporal, nombreRemitente);
+                string rutaArcOriginal = openFileDialog1.FileName;
+                asignarNombreUnico(rutaArcOriginal);
+
+                EncriptarArchivo(rutaArcOriginal, claveAES, ivAES, carpetaTemporal);
 
                 foreach (var usuario in selectedUsers)
                 {
-                    RSACryptoServiceProvider rsaEncryptor = new RSACryptoServiceProvider();
-                    await Console.Out.WriteLineAsync(usuario.PublicKey);
-                    await Console.Out.WriteLineAsync(usuario.PublicKey.ToString());
-                    rsaEncryptor.FromXmlString(usuario.PublicKey); // Cargar la clave 
-                    byte[] claveEncriptadaRSA = rsaEncryptor.Encrypt(claveAES, false);
+                   
+                    EncriptarClaveRSA(claveAES, ivAES, carpetaTemporal,usuario.PublicKey);
 
+                    
+                    string rutaArchivoZip = ComprimirCarpeta(carpetaTemporal);
 
-                    CrearCarpetaConDatos(nombreRemitente, claveEncriptadaRSA, ivAES, archivoEncriptado, carpetaTemporal);
-                    string archivoZip = ComprimirCarpeta(carpetaTemporal);
-
-                    bool exito = await EnviarDatos(usuario.NombreUsuario, archivoZip);
+                    bool exito = await EnviarDatos(usuario.NombreUsuario, rutaArchivoZip);
                     if (!exito)
                     {
                         MessageBox.Show("Error al enviar datos para el usuario: " + usuario.NombreUsuario);
                     }
 
-                    if (File.Exists(archivoZip))
+                    if (File.Exists(rutaArchivoZip))
                     {
-                        File.Delete(archivoZip);
+                        File.Delete(rutaArchivoZip);
                     }
+
+
                 }
 
                 Directory.Delete(carpetaTemporal, true);
             }
         }
-
-
-
-
-
-        private void CrearCarpetaConDatos(string nombreRemitente, byte[] claveEncriptadaRSA, byte[] iv, string archivoEncriptado, string carpetaTemporal)
-        {
-            string nombreBaseArchivo = Path.GetFileNameWithoutExtension(archivoEncriptado);
-
-
-
-            string nombreClave = $"{nombreBaseArchivo}_clave.txt";
-            string nombreIV = $"{nombreBaseArchivo}_IV.txt";
-
-            string rutaClaveEncriptada = Path.Combine(carpetaTemporal, nombreClave);
-            string rutaIVFinal = Path.Combine(carpetaTemporal, nombreIV);
-
-            File.WriteAllBytes(rutaClaveEncriptada, claveEncriptadaRSA);
-            File.WriteAllBytes(rutaIVFinal, iv);
-        }
-
-
-
-
 
         private string ComprimirCarpeta(string carpetaTemporal)
         {
@@ -616,43 +616,6 @@ namespace Practica_CS_encriptar_desencriptar_F1
                 return false;
             }
         }
-
-        private string EncriptarArchivoConAES(byte[] clave, byte[] iv, string carpetaTemporal, string nombreRemitente)
-        {
-            using (Aes aes = Aes.Create())
-            {
-                aes.Key = clave;
-                aes.IV = iv;
-                aes.Mode = CipherMode.CBC;
-
-                string nombreBaseArchivo = Path.GetFileName(nombreArc);
-                string nombreArchivoEncriptado = $"compartidoPor_{nombreRemitente}_{nombreBaseArchivo}.enc";
-                string archivoEncriptado = Path.Combine(carpetaTemporal, nombreArchivoEncriptado);
-
-                using (var encryptor = aes.CreateEncryptor())
-                using (var archivoEntrada = new FileStream(nombreArcNormal, FileMode.Open))
-                using (var archivoSalida = new FileStream(archivoEncriptado, FileMode.Create))
-                using (var cryptoStream = new CryptoStream(archivoSalida, encryptor, CryptoStreamMode.Write))
-                {
-                    archivoEntrada.CopyTo(cryptoStream);
-                }
-
-                return archivoEncriptado;
-            }
-        }
-
-
-
-
-        //private byte[] EncriptarClaveConRSA(byte[] claveAES, string clavePublicaRSA)
-        //{
-        //    using (var rsa = new RSACryptoServiceProvider())
-        //    {
-        //        rsa.FromXmlString(clavePublicaRSA);
-        //        return rsa.Encrypt(claveAES, false);
-        //    }
-        //}
-
 
         private async Task<List<Usuario>> GetUserList()
         {
@@ -821,49 +784,47 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
         }
 
-        private void comprobarRepetidos(String nom)
+        private void asignarNombreUnico(String rutaNom)
         {
-            nombreArcNormal = nom;
             var random = $"{DateTime.UtcNow.Ticks}-{new Random().Next()}";
-            nom = random + Path.GetFileName(nom);
-            nombreArc = nom;
+            nombreArc = random + Path.GetFileName(rutaNom);
         }
 
-    private void crearNuevaFilaDESENC(String nom)
-        {
+        private void crearNuevaFilaDESENC(String nom)
+            {
 
-            Label txtDESENC = new Label();
+                Label txtDESENC = new Label();
 
-            txtDESENC.Text = nom; //ESTO ES TEMPORAL YA QUE HABRÁ QUE PONER EL ARCHIVO CIFRADO
-            txtDESENC.Width = 150;
-            txtDESENC.Height = 30;
+                txtDESENC.Text = nom; //ESTO ES TEMPORAL YA QUE HABRÁ QUE PONER EL ARCHIVO CIFRADO
+                txtDESENC.Width = 150;
+                txtDESENC.Height = 30;
 
-            System.Windows.Forms.Button btnBorrar = new System.Windows.Forms.Button();
-            btnBorrar.Text = "Borrar";
-            btnBorrar.Width = 80;
-            btnBorrar.Height = 30;
+                System.Windows.Forms.Button btnBorrar = new System.Windows.Forms.Button();
+                btnBorrar.Text = "Borrar";
+                btnBorrar.Width = 80;
+                btnBorrar.Height = 30;
 
-            Panel nuevaFila = new Panel();
-            nuevaFila.Width = panelDESENC.Width;
-            nuevaFila.Height = 30;
+                Panel nuevaFila = new Panel();
+                nuevaFila.Width = panelDESENC.Width;
+                nuevaFila.Height = 30;
 
-            txtDESENC.Location = new System.Drawing.Point(0, 0);
-            btnBorrar.Location = new System.Drawing.Point(txtDESENC.Right + 5, 0);
+                txtDESENC.Location = new System.Drawing.Point(0, 0);
+                btnBorrar.Location = new System.Drawing.Point(txtDESENC.Right + 5, 0);
 
-            nuevaFila.Controls.Add(txtDESENC);
-            nuevaFila.Controls.Add(btnBorrar);
+                nuevaFila.Controls.Add(txtDESENC);
+                nuevaFila.Controls.Add(btnBorrar);
 
 
-            nuevaFila.Location = new System.Drawing.Point(10, posicionVerticalDESENC);
+                nuevaFila.Location = new System.Drawing.Point(10, posicionVerticalDESENC);
 
-            // Incrementa la posición vertical para la próxima fila
-            posicionVerticalDESENC += nuevaFila.Height + 5; // Puedes ajustar el espacio entre filas
+                // Incrementa la posición vertical para la próxima fila
+                posicionVerticalDESENC += nuevaFila.Height + 5; // Puedes ajustar el espacio entre filas
 
-            btnBorrar.Click += (sender, e) => EliminarFila(nuevaFila, txtDESENC.Text, 2);//he quitado + ".enc"
+                btnBorrar.Click += (sender, e) => EliminarFila(nuevaFila, txtDESENC.Text, 2);//he quitado + ".enc"
 
-            panelDESENC.Controls.Add(nuevaFila);
+                panelDESENC.Controls.Add(nuevaFila);
 
-        }
+            }
 
         private void ComprobarArchivosEncriptados()
         {
