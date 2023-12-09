@@ -16,16 +16,18 @@ public class UsersController : ControllerBase
     [HttpPost("register")]
     public IActionResult Register([FromBody] RegisterModel model)
     {
-        var result = _userManager.RegisterUser(model.Username, model.Password);
+        var result = _userManager.RegisterUser(model.Username, model.EncryptedPrivateKey, model.PublicKey, model.KLogin);
         if (result)
         {
-            return Ok(new { message = "Registro exitoso." });
+            return Ok(new { message = "Registro exitoso (parte Servidor)." });
         }
         else
         {
-            return BadRequest(new { message = "El usuario ya existe." });
+            return BadRequest(new { message = "El usuario ya existe(parte Servidor)." });
         }
     }
+
+
 
     [HttpPost("authenticate")]
     public IActionResult Authenticate([FromBody] LoginModel model)
@@ -40,6 +42,8 @@ public class UsersController : ControllerBase
             return Unauthorized(new { message = "Usuario o contraseña incorrectos." });
         }
     }
+
+
     [HttpGet("{username}")]
     public IActionResult GetUser(string username)
     {
@@ -53,6 +57,20 @@ public class UsersController : ControllerBase
             return NotFound(new { message = "Usuario no encontrado." });
         }
     }
+
+    [HttpGet("{username}/getAllUsers")]
+    public IActionResult GetAllUserInfoShare(string username) {
+        try
+        {
+            var userShareInfo = _userManager.GetAllUserPublicKeys(username);
+            return Ok(userShareInfo);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = $"Error al obtener las carpetas de usuario: {ex.Message}" });
+        }
+    }
+
 
     [HttpGet("{username}/get-folder")]
     public IActionResult GetFolder(string username)
@@ -76,7 +94,6 @@ public class UsersController : ControllerBase
         }
         catch (Exception ex)
         {
-            // Manejar la excepción (registros, devolución de error, etc.)
             return BadRequest(new { message = $"Error al comprimir la carpeta: {ex.Message}" });
         }
         finally
@@ -100,6 +117,14 @@ public class UsersController : ControllerBase
 
         var userFolderPath = Path.Combine(_userManager.GetUsersFolderPath(), username);
 
+
+        
+        var archivosENCPath = Path.Combine(userFolderPath, "CSarchivosENC");
+        var archivosDESENCPath = Path.Combine(userFolderPath, "CSarchivosDESENC");
+
+        _userManager.DeleteFilesInFolder(archivosENCPath);
+        _userManager.DeleteFilesInFolder(archivosDESENCPath);
+
         if (!Directory.Exists(userFolderPath))
         {
             return NotFound("Usuario no encontrado.");
@@ -116,7 +141,8 @@ public class UsersController : ControllerBase
             }
 
             // Descomprimir el archivo ZIP
-            ZipFile.ExtractToDirectory(tempZipPath, userFolderPath, true);
+
+            ZipFile.ExtractToDirectory(tempZipPath, userFolderPath, false);
 
             return Ok("Archivo cargado y descomprimido exitosamente.");
         }
@@ -133,12 +159,60 @@ public class UsersController : ControllerBase
             }
         }
     }
+
+    [HttpPost("{username}/uploadSharedFiles")]
+    public IActionResult UploadSharedFiles(string username, IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest("Archivo no proporcionado o vacío.");
+        }
+
+        var userEncryptedFolderPath = Path.Combine(_userManager.GetUsersFolderPath(), username, "CSarchivosENC");
+
+        if (!Directory.Exists(userEncryptedFolderPath))
+        {
+            Directory.CreateDirectory(userEncryptedFolderPath);
+        }
+
+        var tempZipPath = Path.GetTempFileName(); 
+
+        try
+        {
+            // Guardar el archivo ZIP temporalmente
+            using (var stream = new FileStream(tempZipPath, FileMode.Create))
+            {
+                file.CopyTo(stream);
+            }
+
+            // Descomprimir el archivo ZIP directamente en la carpeta de archivos encriptados del usuario
+            ZipFile.ExtractToDirectory(tempZipPath, userEncryptedFolderPath, true);
+
+            return Ok("Archivos compartidos cargados exitosamente en la carpeta de archivos encriptados.");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"Error al procesar el archivo: {ex.Message}");
+        }
+        finally
+        {
+            // Eliminar el archivo ZIP temporal
+            if (System.IO.File.Exists(tempZipPath)) 
+            {
+                System.IO.File.Delete(tempZipPath);
+            }
+        }
+    }
+
+
 }
 
 public class RegisterModel
 {
     public string Username { get; set; }
-    public string Password { get; set; }
+    public string EncryptedPrivateKey { get; set; }
+    public string PublicKey { get; set; }
+    public string KLogin { get; set; }
 }
 
 public class LoginModel

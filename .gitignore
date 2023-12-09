@@ -361,3 +361,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/Practica_CS_encriptar_desencriptar_F1/CompartirModalForm.cs
+/Practica_CS_encriptar_desencriptar_F1/ModalCompartir.cs
+/Practica_CS_encriptar_desencriptar_F1/ModalCompartir.Designer.cs
+/Practica_CS_encriptar_desencriptar_F1/ModalCompartir.resx

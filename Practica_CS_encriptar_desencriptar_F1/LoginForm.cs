@@ -23,7 +23,6 @@ namespace Practica_CS_encriptar_desencriptar_F1
         public LoginForm()
         {
             InitializeComponent();
-            //_authClient = new AuthClient("https://tu-servidor.com/api/authenticate"); // Reemplazar con la URL real del servidor
         }
 
         private void label2_Click(object sender, EventArgs e)
@@ -31,6 +30,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
         }
 
+        //POST: El usuario se intenta autentificar
         private async void button1_Click(object sender, EventArgs e)
         {
             // Obtén el nombre de usuario y la contraseña
@@ -51,11 +51,6 @@ namespace Practica_CS_encriptar_desencriptar_F1
             string kdatos = hashedPassword.Substring(0, halfLength);
             string klogin = hashedPassword.Substring(halfLength);
 
-            // DUDA: Aplica Bcrypt a klogin
-            //string hashedKlogin = BCrypt.Net.BCrypt.HashPassword(password);
-
-            // CUANDO HAYA SERVIDOR: Envía kLogin al servidor para autenticación
-            //string response = await _authClient.AuthenticateUser(username, hashedKlogin);
 
             bool authenticated = await AuthenticateUserAsync(username, klogin);
 
@@ -93,7 +88,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
                 if (response.IsSuccessStatusCode)
                 {
-                    // Aquí asumimos que el servidor devuelve un objeto JSON con una propiedad 'message'
+                    
                     var responseObject = JsonConvert.DeserializeObject<dynamic>(responseContent);
                     return responseObject?.message == "Autenticación exitosa.";
                 }
@@ -121,6 +116,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
         {
 
         }
+
         private string GetSHA256Hash(string input)
         {
             using (SHA256 sha256 = SHA256.Create())
@@ -138,6 +134,13 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
                 return stringBuilder.ToString();
             }
+        }
+
+        private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            this.Hide(); // OCULTAMOS EL LOGIN
+            RegistroForm registro = new RegistroForm();   //CREAMOS UN NUEVO FORM 
+            registro.Show(); //LO MOSTRAMOS 
         }
     }
 }
