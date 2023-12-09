@@ -16,16 +16,18 @@ public class UsersController : ControllerBase
     [HttpPost("register")]
     public IActionResult Register([FromBody] RegisterModel model)
     {
-        var result = _userManager.RegisterUser(model.Username, model.Password);
+        var result = _userManager.RegisterUser(model.Username, model.EncryptedPrivateKey, model.PublicKey, model.KLogin);
         if (result)
         {
-            return Ok(new { message = "Registro exitoso." });
+            return Ok(new { message = "Registro exitoso (parte Servidor)." });
         }
         else
         {
-            return BadRequest(new { message = "El usuario ya existe." });
+            return BadRequest(new { message = "El usuario ya existe(parte Servidor)." });
         }
     }
+
+
 
     [HttpPost("authenticate")]
     public IActionResult Authenticate([FromBody] LoginModel model)
@@ -40,6 +42,8 @@ public class UsersController : ControllerBase
             return Unauthorized(new { message = "Usuario o contraseña incorrectos." });
         }
     }
+
+
     [HttpGet("{username}")]
     public IActionResult GetUser(string username)
     {
@@ -90,7 +94,6 @@ public class UsersController : ControllerBase
         }
         catch (Exception ex)
         {
-            // Manejar la excepción (registros, devolución de error, etc.)
             return BadRequest(new { message = $"Error al comprimir la carpeta: {ex.Message}" });
         }
         finally
@@ -172,7 +175,7 @@ public class UsersController : ControllerBase
             Directory.CreateDirectory(userEncryptedFolderPath);
         }
 
-        var tempZipPath = Path.GetTempFileName(); // Asegúrate de que esta línea esté generando una ruta de archivo válida
+        var tempZipPath = Path.GetTempFileName(); 
 
         try
         {
@@ -207,7 +210,9 @@ public class UsersController : ControllerBase
 public class RegisterModel
 {
     public string Username { get; set; }
-    public string Password { get; set; }
+    public string EncryptedPrivateKey { get; set; }
+    public string PublicKey { get; set; }
+    public string KLogin { get; set; }
 }
 
 public class LoginModel

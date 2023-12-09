@@ -72,7 +72,7 @@
             this.btn_selc.TabIndex = 3;
             this.btn_selc.Text = "Seleccionar";
             this.btn_selc.UseVisualStyleBackColor = true;
-            this.btn_selc.Click += new System.EventHandler(this.btn_selc_Click);
+            this.btn_selc.Click += new System.EventHandler(this.seleccionar_Click);
             // 
             // panelContenedor
             // 
@@ -119,7 +119,7 @@
             this.compartir_.TabIndex = 9;
             this.compartir_.Text = "Compartir";
             this.compartir_.UseVisualStyleBackColor = true;
-            this.compartir_.Click += new System.EventHandler(this.button1_Click);
+            this.compartir_.Click += new System.EventHandler(this.compartir_Click);
             // 
             // Form1
             // 

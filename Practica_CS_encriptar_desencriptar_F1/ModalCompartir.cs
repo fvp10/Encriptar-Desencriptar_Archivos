@@ -48,7 +48,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
             {
                 if (checkBox.Checked)
                 {
-                    SelectedUsuarios.Add((Usuario)checkBox.Tag); // Agregar el Usuario al que corresponde el checkbox marcado
+                    SelectedUsuarios.Add((Usuario)checkBox.Tag); 
                 }
             }
 
