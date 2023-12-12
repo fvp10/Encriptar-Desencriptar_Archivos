@@ -22,7 +22,7 @@ namespace Practica_CS_encriptar_desencriptar_F1
         }
         private void button1_Click(object sender, EventArgs e)
         {
-            registroMetodo();
+           Registro();
         }
         private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
@@ -31,12 +31,11 @@ namespace Practica_CS_encriptar_desencriptar_F1
             main.Show(); //LO MOSTRAMOS 
         }
 
-        public void registroMetodo()
+        public void Registro()
         {
             string username = txtUsername.Text;
             string password = txtContrasenya.Text;
-
-            // Asumiendo que tienes métodos similares a los de UsuarioModel.cs en tu cliente
+         if(username == "" || password == )
             if (!Directory.Exists(Path.Combine(Application.StartupPath, "Usuarios", username)))
             {
 
@@ -95,6 +94,9 @@ namespace Practica_CS_encriptar_desencriptar_F1
                 if (response.IsSuccessStatusCode)
                 {
                     MessageBox.Show("Registro exitoso (parte Cliente).");
+                    this.Hide(); // OCULTAMOS EL LOGIN
+                    LoginForm main = new LoginForm();   //CREAMOS UN NUEVO FORM 
+                    main.Show(); //LO MOSTRAMOS 
                 }
                 else
                 {
@@ -121,11 +123,8 @@ namespace Practica_CS_encriptar_desencriptar_F1
         {
             byte[] clearBytes = System.Text.Encoding.Unicode.GetBytes(clearText);
 
-            // Utilizar la contraseña directamente; es necesario que tenga la longitud adecuada.
-            // Esto es INSEGURO y solo para fines demostrativos.
-            // En producción, siempre debe usarse un salt y una función de derivación de clave segura.
-            byte[] key = new byte[32]; // AES requiere una clave de 256 bits para AES-256.
-            byte[] iv = new byte[16]; // El IV siempre necesita 16 bytes para AES.
+            byte[] key = new byte[32]; 
+            byte[] iv = new byte[16]; 
             Array.Copy(System.Text.Encoding.UTF8.GetBytes(password.PadRight(key.Length)), key, key.Length);
             Array.Copy(System.Text.Encoding.UTF8.GetBytes(password.PadRight(iv.Length)), iv, iv.Length);
 
@@ -151,7 +150,6 @@ namespace Practica_CS_encriptar_desencriptar_F1
 
         }
 
-        
 
         private string GetSHA256Hash(string input)
         {

@@ -14,7 +14,6 @@ public class UsuarioModel
     {
         if (!Directory.Exists(_usersFolderPath))
         {
-            // Crea la carpeta 
             Directory.CreateDirectory(_usersFolderPath);
         }
 
@@ -24,7 +23,6 @@ public class UsuarioModel
         var userPath = Path.Combine(_usersFolderPath, username);
         if (Directory.Exists(userPath))
         {
-            // El usuario ya existe
             return false;
         }
 
@@ -59,13 +57,11 @@ public class UsuarioModel
 
         if (!Directory.Exists(carpetaPractica))
         {
-            // La carpeta "CSarchivosENC" no existe, créala
             Directory.CreateDirectory(carpetaPractica);
         }
 
         if (!Directory.Exists(carpetaPractica2))
         {
-            // La carpeta "CSarchivosENC" no existe, créala
             Directory.CreateDirectory(carpetaPractica2);
         }
     }
