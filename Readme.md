@@ -1,4 +1,4 @@
-# Memoria del Proyecto de Encriptación y Desencriptación
+# Proyecto de Compresión y Seguridad
 
 ## Índice 📑
 * [Introducción](#introducción) 🚀
@@ -7,16 +7,23 @@
 * [Software Utilizado](#software) 💻
 * [Librerías](#librerías) 📚
 * [Detalles de Implementación](#detalles-de-implementación) 🔨
-  - [Fase 1](#fase-1)
-    * [Interfaz Dinámica](#interfaz-dinámica) 🖥️
-    * [Encriptar](#encriptar) 🔒
-    * [Desencriptar](#desencriptar) 🔓
+
+  - [Fase 1](#Fase-1)
+    * [Interfaz Dinámica](#interfaz-dinámica-🖥️) 🖥️
+    * [Encriptar](#encriptar-🔒) 🔓
+    * [Desencriptar](#desencriptar-🔓) 🔓
+
   - [Fase 2](#fase-2)
-    * [Lado Cliente](#lado-cliente) 🖥️
+    * [Lado Cliente](#lado-cliente🖥️) 🖥️
       - [Interfaz Login](#interfaz-login)
       - [Interfaz de Cifrado/Descifrado](#interfaz-de-cifradodescifrado)
-    * [Lado Servidor](#lado-servidor) 🖥️
+    * [Lado Servidor](#lado-servidor🖥️) 🖥️
       - [Gestión de Usuarios y Claves](#gestión-de-usuarios-y-claves)
+
+  - [Fase 3](#fase-3)
+    * [Registro de Usuarios](#registro-de-usuarios-🖊️) 🖊️ 
+    * [Compartición de Archivos](#compartición-de-archivos-🔄) 🔄
+    * [Gestión de Seguridad y Acceso ](#gestion-de-seguridad-y-acceso-🔐)🔐
 * [Team](#team) 👫
 
 
@@ -25,13 +32,20 @@ Esto es una práctica dentro de la carrera __Ing.Multimedia__ en la __Universida
 
 El proyecto irá cambiando en función con las fases hasta tener un programa completo con todas las funcionalidades.
 
+
 ## Fases del proyecto 📈
 
 | Fase | Descripción | Requisitos | Estado |
 |------|-------------|------------|-------|
 | Fase 1 | Implementación de un sistema que cifra y descifra archivos multimedia con AES256 | - Cifrado de al menos 6 archivos multimedia con claves diferentes <br> - Almacenamiento de claves en un archivo o base de datos | ✅ Completado |
 | Fase 2 | Diseño e implementación de un sistema para autentificar al administrador y encriptar claves AES con RSA | - Autenticación del administrador <br> - Generación de claves RSA (pública y privada) <br> - Encriptación de claves AES con clave pública | ✅ Completado |
-| Fase 3 | Sistema para el acceso de usuarios a los contenidos cifrados | - Generación de claves RSA para cada usuario <br> - Sistema de acceso a contenidos cifrados <br> - Mejoras en el sistema de autenticación | ❌ Pendiente |
+| Fase 3 | Sistema para el acceso de usuarios a los contenidos cifrados | - Generación de claves RSA para cada usuario <br> - Sistema de acceso a contenidos cifrados <br> - Mejoras en el sistema de autenticación | ✅ Completado |
+
+## Diagramas 
+![](/imgs/Diagrama_de_secuencia.PNG)
+
+![](/imgs/Diagrama_de_flujo.PNG)
+
 
 ## Manual de Usuario 📖
 
@@ -47,6 +61,11 @@ __Encriptar un Archivo__ 🔒
 __Desencriptar un Archivo__ 🔓
 1. En la lista de archivos encriptados, haz clic en "Desencriptar" al lado del archivo que desea desencriptar.
 2. El archivo desencriptado se guardará en otra carpeta, se borrara en la que se encontraba actualmente, y se mostrará un mensaje de confirmación.
+
+__Desencriptar un Archivo__ 🔄
+1. Selecciona un archivo que quieras seleccionar, se mostrarán en este caso todos los usuarios que se encuentran en la BD.
+2. Presiona enviar
+3. Todos los usuarios que hayas marcado se les enviará tu archivo encriptado que podrám desencriptar.
 
 ## Software 💻
 * __Visual Studio:__ Entorno de desarrollo integrado de Microsoft utilizado para desarrollar aplicaciones, sitios web, servicios web y aplicaciones móviles.
@@ -87,18 +106,17 @@ System.Threading.Tasks: Incluye clases y tipos que admiten programación asincr�
 System.Text.Json: Facilita la serialización y deserialización de objetos en formato JSON
 ```
 
-<!-- ### Fase 2
+<span style="font-size: larger; font-weight: bold; color:#ED9B40 ">Fase 3</span>
 ```
+Bcrypt: Utilizada para encriptar claves de usuario en el lado cliente antes de su almacenamiento en el servidor.
 ```
-### Fase 3
-```
-``` -->
+
 
 ## Detalles de implementación 🔨
 
-<span style="font-size: larger; font-weight: bold; color:#ED9B40 ">Fase 1</span>
+### <span style="font-size: larger; font-weight: bold; color:#ED9B40 ">Fase 1</span>
 
-#### Interfaz Dinámica 🖥️
+### Interfaz Dinámica 🖥️
 El código utiliza un diseño dinámico donde los archivos encriptados se muestran en tiempo real. Cuando un archivo se encripta, se agrega automáticamente a la lista visual en la interfaz de usuario. Esto se logra a través del método <span style="color:#9FD1F5">CrearNuevaFila()</span> que crea una nueva fila en la interfaz para cada archivo encriptado.
 
 Para borrar un archivo, se usa el método <span style="color:#9FD1F5">EliminarFila()</span> que remueve la fila de la interfaz y elimina el archivo encriptado, así como sus claves asociadas, del sistema de archivos.
@@ -107,7 +125,7 @@ La actualización de la lista visual se realiza a través del método <span styl
 
 Para verificar y listar los archivos encriptados al iniciar la aplicación, se utiliza el método <span style="color:#9FD1F5">ComprobarArchivosEncriptados()</span> .
 
-#### Encriptar 🔒
+### Encriptar 🔒
 El proceso de encriptación se inicia cuando el usuario selecciona un archivo para encriptar y hace clic en "Encriptar". El evento asociado __(encriptar__Click)__ llama al método  <span style="color:#9FD1F5">MetodoDeEncriptado()</span>.
 
 1. <span style="color:#9FD1F5">MetodoDeEncriptado()</span>: Este método se asegura de que un archivo esté seleccionado, genera una clave y un IV aleatorios, y procede a encriptar el archivo seleccionado. Utiliza AES para la encriptación.
@@ -118,7 +136,7 @@ El proceso de encriptación se inicia cuando el usuario selecciona un archivo pa
 
 4. La interfaz se actualiza automáticamente para listar el nuevo archivo encriptado mediante el <span style="color:#9FD1F5">ActualizarLista()</span>.
 
-#### Desencriptar 🔓
+### Desencriptar 🔓
 El  proceso de desencriptación inicia cuando el usuario hace clic en "Desencriptar" al lado de un archivo encriptado listado en la interfaz. El evento asociado __(desencriptar__Click)__ llama al método <span style="color:#9FD1F5">Desencriptado()</span> .
 
 1. <span style="color:#9FD1F5">Desencriptado(String nombre)</span>: Este método recupera la clave y el IV asociados con el archivo encriptado desde sus archivos respectivos. Luego, utiliza estos para desencriptar el archivo.
@@ -129,12 +147,12 @@ El  proceso de desencriptación inicia cuando el usuario hace clic en "Desencrip
 
 4. La interfaz se actualiza automáticamente para reflejar los cambios con el <span style="color:#9FD1F5">ActualizarLista()</span>, y el archivo desencriptado se puede acceder desde el directorio especificado.
 
-<span style="font-size: larger; font-weight: bold; color:#ED9B40 ">Fase 2</span>
+### <span style="font-size: larger; font-weight: bold; color:#ED9B40 ">Fase 2</span>
 <p>Esta segunda parte consiste en la implementación de un servidor para recibir los archivos pertenecientes al usuario ya esten encriptados o no. Al hacer diferenciación por usuarios esta fase implementa una nueva interfaz para que un usuario pueda hacer Login y acceder a sus archivos alojados en el servidor.</P>
 
-#### Lado Cliente🖥️
+## Lado Cliente🖥️
 
-#### Interfaz Login
+### Interfaz Login
 La siguiente imagen representa la interfaz que tendrá el usuario para poder iniciar sesión: 
     ![](/imgs/login.png)
 
@@ -144,7 +162,7 @@ La siguiente imagen representa la interfaz que tendrá el usuario para poder ini
 2.  Autentificación: el cliente cuando ingresa sus credenciales envia una solicitud de autenticación al servidor donde envia su nombre de usuario y el <span style="color:#9FD1F5">Klogin</span> generado a partir de su contraseña. Con este metodo creamos un objeto json con el <span style="color:#9FD1F5">nombre del usuario</span> y con el <span style="color:#9FD1F5">Klogin</span> y se lo mandamos al servidor para que haga las comprobaciones pertinentes.
     ![](/imgs/autenticarUserCliente.PNG)
 
-#### Interfaz de Cifrado/Descifrado
+### Interfaz de Cifrado/Descifrado
 La interfaz que dispondrá el usuario al hacer el login será: 
     ![](/imgs/encDesenc.PNG)
 1. Obtención de datos: Una vez el ususario ha sido autenticado, el servido comprime la carpeta perteneciente al usuario que contiene la <span style="color:#9FD1F5">clave pública</span> con la que encriptaremos la <span style="color:#9FD1F5">calve aleatoria</span>,  la <span style="color:#9FD1F5">calve privada </span>que ha sido encriptada en el servidor con el <span style="color:#9FD1F5">Kdatos</span>. Tras esto se muestra por pantalla los archivos que el usuario tiene encriptados y desencriptados.
@@ -159,8 +177,8 @@ Con esta <span style="color:#9FD1F5">clave privada</span>, el usuario descifra l
 3. Cifrado/descifrado de archivos: tras el paso anterior, el usuario puede cifrar o descifrar los archivos utilizando la <span style="color:#9FD1F5">clave aleatoria</span> y el <span style="color:#9FD1F5">IV</span> proporcionados.
 4. Cierre de sesión: Una vez el usuario cierra la app, el cliente comprime los archivos encriptados y desencriptados y se los manda al servidor para que los almacene
 
-#### Lado Servidor🖥️
-#### GEstión de Usuarios y Claves
+## Lado Servidor🖥️
+### Gestión de Usuarios y Claves
 1. Atenticación del usuario: el servidor recive una solicitud del login y busca al usuario por su nombre. Una vez que se ha encontrado el usuario, se utiliza el <span style="color:#9FD1F5">Klogin</span> que nos pasa el cliente y lo comporamos con el <span style="color:#9FD1F5">Klogin</span> almacenado y encriptado asociado a ese usuario para validar al usuario.<p>
 Con el siguiente metodo<span style="color:#9FD1F5">AuthenticateUser()</span> podemos ver los pasos para autenticar el usuario: 
     ![](/imgs/autentificacionUsuario.png)
@@ -170,6 +188,30 @@ Con el siguiente metodo<span style="color:#9FD1F5">AuthenticateUser()</span> pod
 
 3. Recepción y Almacenamiento de Datos: una vez el cliente cierra sesión, el usuario recibe una carpeta con los archivos cifrados y descifrados con los que ha terminado el usuario en su interfaz. Tras recibirlos, el servidor actualiza la carpeta del usuario con los archivos proporcionados. 
 
+
+### <span style="font-size: larger; font-weight: bold; color:#ED9B40 ">Fase 3</span>
+
+En esta última fase hemos implementado la funcionalidad Registro en el lado cliente junto a una 
+nueva interfaz para ello y por último hemos desarrollado la compartición de archivos encriptados 
+entre los usuarios registrados.
+En cuanto a nuevas librerías de se refiere, hemos añadido la librería Bcrypt en el lado cliente 
+para encriptar la clave kLogin y almacenarla en el servidor.
+
+En este caso hemos tenido que retocar la lógica en la que se creaban las claves y se securizaban debido a que en este caso teníamos que implementar otra lógica.
+Todo ello gestionado tanto en la parte de cliente como servidor.
+
+
+### Registro de Usuarios 🖊️
+En esta fase, se añade la funcionalidad de registro en el cliente, permitiendo crear nuevas cuentas de usuario. La contraseña ingresada por el usuario se hashea y se divide en Kdatos y Klogin. Estos se utilizan para encriptar la clave privada RSA y para la autenticación del usuario, respectivamente.
+### Compartición de Archivos 🔄
+Se implementa la capacidad de compartir archivos encriptados entre usuarios registrados. El usuario selecciona el archivo a compartir y, a través de una interfaz, elige a qué usuarios enviarlo. El sistema obtiene las claves públicas de los destinatarios del servidor y utiliza estas para encriptar el archivo antes de compartirlo.
+
+### Gestión de Seguridad y Acceso 🔐
+
+Se introduce un sistema de gestión de seguridad y acceso que incluye la autenticación de usuarios, la encriptación de claves RSA y la administración de archivos compartidos. Esto garantiza que solo los usuarios autorizados puedan acceder a los archivos y que la información se mantenga segura durante todo el proceso.
+
+## Aspectos de mejora ⬆️🚧
+En nuestro caso tenemos que los controllers no se encuentran securizados, con un poco más de tiempo esto se podría implementar mediante unos roles en los controllers lo que permitiría que usuarios autorizados pudieran acceder a ciertos controladores y un admin si fuera neesario a otras.
 
 ## Team 👨🏻‍🤝‍👨🏻
 🧑 Yohannes Befikadu - ybbb2@alu.ua.es
